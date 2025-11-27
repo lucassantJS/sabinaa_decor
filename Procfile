@@ -1,1 +1,1 @@
-web: gunicorn sabina_decor.wsgi 
+web: python manage.py migrate && gunicorn sabina_decor.wsgi
