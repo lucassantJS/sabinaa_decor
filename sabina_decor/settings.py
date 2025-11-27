@@ -45,30 +45,30 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
+        'simple': {
+            'format': '{levelname} {message}',
             'style': '{',
         },
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+            'formatter': 'simple',
         },
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO',
+        'level': 'WARNING',  # ⚠️ Mude de INFO para WARNING
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'WARNING',  # ⚠️ Mude de INFO para WARNING
             'propagate': False,
         },
         'app': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'WARNING',  # ⚠️ Mude de DEBUG para WARNING
             'propagate': False,
         },
     },

@@ -1,6 +1,8 @@
 from datetime import datetime
 import json
 import threading
+import time
+import socket
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.core.exceptions import ValidationError
@@ -19,45 +21,95 @@ import logging
 # Importações dos Models e Constantes
 from .models import Agendamento, Orcamento, FotoGaleria, CategoriaFoto, CONSTANTES_PACOTES, CONSTANTES_SERVICOS
 from .forms import AgendamentoForm, FotoGaleriaForm
-from .email_service import EmailService  # Novo serviço de e-mail
 
-# Configuração de logging
+# Configuração de logging - REDUZIDA para evitar rate limit
 logger = logging.getLogger(__name__)
 
-def diagnostico_email(request):
-    """View para diagnóstico completo do problema de e-mail"""
-    import socket
-    from django.conf import settings
-    
-    diagnostics = []
-    
-    # Teste de DNS
+# Controle de rate limiting para e-mails
+_last_email_time = 0
+_email_count = 0
+
+# --- Funções de Email Corrigidas ---
+def testar_conexao_email():
+    """Testa a conexão com o servidor de e-mail"""
     try:
-        socket.gethostbyname('smtp.gmail.com')
-        diagnostics.append("✅ DNS do Gmail resolvido com sucesso")
+        send_mail(
+            subject='Teste de Conexão - Sabina Decorações',
+            message='Teste de conexão bem-sucedido.',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.DEFAULT_FROM_EMAIL],
+            fail_silently=False,
+        )
+        return True, "Conexão bem-sucedida"
     except Exception as e:
-        diagnostics.append(f"❌ Falha no DNS: {e}")
+        return False, f"Falha na conexão: {str(e)}"
+
+def enviar_email_agendamento_servico(agendamento, tipo):
+    """Envia e-mail de agendamento com logs mínimos"""
+    global _last_email_time, _email_count
     
-    # Teste de conectividade de rede
+    # Rate limiting: máximo 1 e-mail por segundo
+    current_time = time.time()
+    if current_time - _last_email_time < 1:
+        return False, "Rate limit atingido"
+    
+    _last_email_time = current_time
+    _email_count += 1
+    
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(10)
-        result = sock.connect_ex(('smtp.gmail.com', 587))
-        sock.close()
-        if result == 0:
-            diagnostics.append("✅ Conexão com smtp.gmail.com:587 bem-sucedida")
+        if tipo == 'aceito':
+            subject = 'Confirmação de Agendamento - Sabina Decorações'
+            template = 'app/email_confirmacao_aceito.html'
+        elif tipo == 'recusado':
+            subject = 'Agendamento Recusado - Sabina Decorações'
+            template = 'app/email_confirmacao_recusado.html'
         else:
-            diagnostics.append(f"❌ Falha na conexão com smtp.gmail.com:587 (código: {result})")
+            return False, "Tipo inválido"
+        
+        context = {
+            'nome': agendamento.nome,
+            'data': agendamento.data,
+            'hora': agendamento.hora.strftime('%H:%M'),
+            'telefone': agendamento.telefone,
+            'mensagem': agendamento.mensagem or 'Não informada'
+        }
+        
+        html_message = render_to_string(template, context)
+        plain_message = strip_tags(html_message)
+        
+        # LOG SIMPLIFICADO - apenas warning para reduzir volume
+        logger.warning(f"Enviando e-mail {tipo} para {agendamento.email}")
+        
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[agendamento.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        
+        return True, "Sucesso"
+        
     except Exception as e:
-        diagnostics.append(f"❌ Erro de socket: {e}")
-    
-    # Verificar configurações
-    diagnostics.append(f"📧 EMAIL_HOST: {getattr(settings, 'EMAIL_HOST', 'Não definido')}")
-    diagnostics.append(f"🔑 EMAIL_PORT: {getattr(settings, 'EMAIL_PORT', 'Não definido')}")
-    diagnostics.append(f"👤 EMAIL_HOST_USER: {getattr(settings, 'EMAIL_HOST_USER', 'Não definido')}")
-    diagnostics.append(f"🔒 EMAIL_HOST_PASSWORD definido: {'Sim' if hasattr(settings, 'EMAIL_HOST_PASSWORD') and settings.EMAIL_HOST_PASSWORD else 'Não'}")
-    
-    return HttpResponse("<br>".join(diagnostics))
+        # LOG DE ERRO APENAS - não use info/error repetitivos
+        logger.warning(f"Erro e-mail: {str(e)}")
+        return False, f"Erro: {str(e)}"
+
+def enviar_email_agendamento_background(agendamento_id, tipo):
+    """Função background com proteção contra loops"""
+    try:
+        agendamento = Agendamento.objects.get(id=agendamento_id)
+        success, message = enviar_email_agendamento_servico(agendamento, tipo)
+        
+        # REMOVA logs de sucesso - apenas erros com warning
+        if not success and "Rate limit" not in message:
+            logger.warning(f"Falha e-mail: {message}")
+            
+    except Agendamento.DoesNotExist:
+        logger.warning(f"Agendamento {agendamento_id} não existe")
+    except Exception as e:
+        logger.warning(f"Erro inesperado: {str(e)}")
 
 # --- Funções Auxiliares ---
 def converter_preco_input(valor_str):
@@ -69,25 +121,6 @@ def converter_preco_input(valor_str):
         return float(limpo)
     except ValueError:
         return 0.0
-
-# --- Tarefas de Email em Background ---
-def enviar_email_agendamento_background(agendamento_id, tipo):
-    """
-    Função robusta para envio de e-mails de agendamento em background
-    """
-    try:
-        agendamento = Agendamento.objects.get(id=agendamento_id)
-        success, message = EmailService.enviar_email_agendamento(agendamento, tipo)
-        
-        if success:
-            logger.info(f"✅ E-mail de {tipo} processado: {message}")
-        else:
-            logger.error(f"❌ Falha no e-mail de {tipo}: {message}")
-            
-    except Agendamento.DoesNotExist:
-        logger.error(f"❌ Agendamento ID {agendamento_id} não encontrado")
-    except Exception as e:
-        logger.error(f"❌ Erro inesperado: {str(e)}")
 
 def task_enviar_email_orcamento(orcamento_id, preco_final_float):
     try:
@@ -137,13 +170,57 @@ def task_enviar_email_orcamento(orcamento_id, preco_final_float):
                 fail_silently=False,
             )
             
-        logger.info(f"✅ Emails de orçamento #{orcamento.id} enviados em background.")
+        # LOG SIMPLIFICADO
+        logger.warning(f"E-mail orçamento #{orcamento.id} enviado")
 
     except Exception as e:
-        logger.error(f"❌ Erro ao enviar email em background para orçamento {orcamento_id}: {str(e)}")
+        logger.warning(f"Erro e-mail orçamento: {str(e)}")
+
+# --- Views de Diagnóstico (Mantidas mas com logs reduzidos) ---
+def diagnostico_email(request):
+    """View para diagnóstico completo do problema de e-mail"""
+    diagnostics = []
+    
+    # Teste de DNS
+    try:
+        socket.gethostbyname('smtp.gmail.com')
+        diagnostics.append("✅ DNS do Gmail resolvido")
+    except Exception as e:
+        diagnostics.append(f"❌ Falha no DNS: {e}")
+    
+    # Teste de conectividade de rede
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(10)
+        result = sock.connect_ex(('smtp.gmail.com', 587))
+        sock.close()
+        if result == 0:
+            diagnostics.append("✅ Conexão com smtp.gmail.com:587")
+        else:
+            diagnostics.append(f"❌ Falha na conexão (código: {result})")
+    except Exception as e:
+        diagnostics.append(f"❌ Erro de socket: {e}")
+    
+    # Verificar configurações
+    diagnostics.append(f"📧 EMAIL_HOST: {getattr(settings, 'EMAIL_HOST', 'Não definido')}")
+    diagnostics.append(f"🔑 EMAIL_PORT: {getattr(settings, 'EMAIL_PORT', 'Não definido')}")
+    diagnostics.append(f"👤 EMAIL_HOST_USER: {getattr(settings, 'EMAIL_HOST_USER', 'Não definido')}")
+    diagnostics.append(f"🔒 EMAIL_HOST_PASSWORD definido: {'Sim' if hasattr(settings, 'EMAIL_HOST_PASSWORD') and settings.EMAIL_HOST_PASSWORD else 'Não'}")
+    
+    return HttpResponse("<br>".join(diagnostics))
+
+def testar_email(request):
+    """View temporária para testar configuração de e-mail"""
+    try:
+        success, message = testar_conexao_email()
+        if success:
+            return HttpResponse("✅ " + message)
+        else:
+            return HttpResponse("❌ " + message)
+    except Exception as e:
+        return HttpResponse(f"❌ Erro no teste: {str(e)}")
 
 # --- Views de Autenticação ---
-
 def login_personalizado(request):
     if request.user.is_authenticated:
         return redirect('inicio')
@@ -165,7 +242,6 @@ def logout_personalizado(request):
     return redirect('inicio')
 
 # --- Views Públicas ---
-
 def inicio(request):
     return render(request, 'app/inicio.html')
 
@@ -185,7 +261,8 @@ def galeria_fotos(request):
         return render(request, 'app/galeria_fotos.html', context)
         
     except Exception as e:
-        logger.error(f"Erro na galeria: {e}")
+        # LOG SIMPLIFICADO
+        logger.warning(f"Erro galeria: {e}")
         fotos_fallback = [
             {
                 "id": 1,
@@ -202,7 +279,6 @@ def galeria_fotos(request):
         return render(request, 'app/galeria_fotos.html', context)
 
 def simulador_orcamento(request):
-    # Constrói as listas dinamicamente a partir das constantes do Model
     tipos_evento = [{'valor': k, 'nome': v} for k, v in Orcamento.TIPO_EVENTO_CHOICES]
 
     pacotes = []
@@ -255,7 +331,6 @@ def simulador_orcamento(request):
             return redirect('simulador_orcamento')
             
         except ValidationError as e:
-            # Tratamento de erro melhorado para evitar __all__
             if hasattr(e, 'message_dict'):
                 for campo, erros in e.message_dict.items():
                     for erro in erros:
@@ -285,20 +360,16 @@ def criar_agendamento(request):
                 messages.success(request, "Seu agendamento foi solicitado com sucesso!")
                 return redirect('inicio')
             except ValidationError as e:
-                 # Erros gerais de validação (embora o is_valid capture a maioria, o save pode lançar)
                  msg = e.message if hasattr(e, 'message') else str(e)
                  messages.error(request, msg)
             except Exception as e:
                 messages.error(request, f"Erro no agendamento: {str(e)}")
         else:
-            # --- CORREÇÃO AQUI: Remove o __all__ das mensagens ---
             for field, errors in formulario.errors.items():
                 for error in errors:
                     if field == '__all__':
-                        # Se o erro for geral (ex: horário inválido do model.clean), mostra só a mensagem
                         messages.error(request, error)
                     else:
-                        # Se for erro de campo específico (ex: telefone), mostra Campo: Erro
                         messages.error(request, f"{field}: {error}")
     else:
         formulario = AgendamentoForm()
@@ -325,19 +396,7 @@ def api_verificar_disponibilidade(request):
     except ValueError:
         return JsonResponse({'error': 'Formato de data inválido'}, status=400)
 
-def testar_email(request):
-    """View temporária para testar configuração de e-mail"""
-    try:
-        success, message = EmailService.testar_conexao()
-        if success:
-            return HttpResponse("✅ " + message)
-        else:
-            return HttpResponse("❌ " + message)
-    except Exception as e:
-        return HttpResponse(f"❌ Erro no teste: {str(e)}")
-
 # --- Views de Administração ---
-
 @user_passes_test(eh_administrador, login_url='/admin/login/')
 def lista_agendamentos(request):
     agendamentos = Agendamento.objects.all().order_by('-data', '-hora')
@@ -353,7 +412,6 @@ def editar_agendamento(request, pk):
             formulario.save()
             return redirect('lista_agendamentos')
         else:
-            # Também corrige aqui caso você edite e dê erro
             for field, errors in formulario.errors.items():
                 for error in errors:
                     if field == '__all__':
@@ -377,7 +435,6 @@ def deletar_agendamento(request, pk):
 def aceitar_agendamento(request, pk):
     agendamento = get_object_or_404(Agendamento, pk=pk)
     try:
-        # Verifica conflitos antes de aceitar
         agendamento.status = 'aceito'
         agendamento.aceito_por = request.user
         agendamento.recusado_por = None
@@ -385,7 +442,7 @@ def aceitar_agendamento(request, pk):
         agendamento.clean() 
         agendamento.save()
         
-        # ✅ CORREÇÃO: Sempre usar thread com daemon=True para evitar timeout
+        # Use thread com daemon=True
         email_thread = threading.Thread(
             target=enviar_email_agendamento_background, 
             args=(agendamento.id, 'aceito'),
@@ -393,7 +450,7 @@ def aceitar_agendamento(request, pk):
         )
         email_thread.start()
         
-        messages.success(request, "✅ Agendamento aceito! E-mail de confirmação está sendo enviado em background.")
+        messages.success(request, "Agendamento aceito! E-mail de confirmação está sendo enviado.")
         
     except ValidationError as e:
         if hasattr(e, 'message'):
@@ -402,9 +459,9 @@ def aceitar_agendamento(request, pk):
             msg = " | ".join(e.messages)
         else:
             msg = str(e)
-        messages.error(request, f"❌ Não foi possível aceitar: {msg}")
+        messages.error(request, f"Não foi possível aceitar: {msg}")
     except Exception as e:
-        messages.error(request, f"❌ Erro inesperado: {str(e)}")
+        messages.error(request, f"Erro inesperado: {str(e)}")
         
     return redirect('lista_agendamentos')
 
@@ -417,7 +474,6 @@ def recusar_agendamento(request, pk):
         agendamento.aceito_por = None
         agendamento.save()
 
-        # ✅ CORREÇÃO: Mesma abordagem assíncrona
         email_thread = threading.Thread(
             target=enviar_email_agendamento_background, 
             args=(agendamento.id, 'recusado'),
@@ -425,10 +481,10 @@ def recusar_agendamento(request, pk):
         )
         email_thread.start()
 
-        messages.success(request, "✅ Agendamento recusado. E-mail está sendo enviado em background.")
+        messages.success(request, "Agendamento recusado. E-mail está sendo enviado.")
         
     except Exception as e:
-        messages.error(request, f"❌ Erro ao recusar agendamento: {str(e)}")
+        messages.error(request, f"Erro ao recusar agendamento: {str(e)}")
         
     return redirect('lista_agendamentos')
 
@@ -444,7 +500,7 @@ def adicionar_foto(request):
         form = FotoGaleriaForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            messages.success(request, "✅ Foto adicionada com sucesso!")
+            messages.success(request, "Foto adicionada com sucesso!")
             return redirect('gerenciar_galeria')
     else:
         form = FotoGaleriaForm()
@@ -456,7 +512,7 @@ def excluir_foto(request, foto_id):
     foto = get_object_or_404(FotoGaleria, id=foto_id)
     if request.method == 'POST':
         foto.delete()
-        messages.success(request, "✅ Foto excluída com sucesso!")
+        messages.success(request, "Foto excluída com sucesso!")
         return redirect('gerenciar_galeria')
     return render(request, 'app/excluir_foto.html', {'foto': foto})
 
@@ -480,7 +536,6 @@ def detalhes_orcamento(request, orcamento_id):
     orcamento = get_object_or_404(Orcamento, id=orcamento_id)
     orcamento_estimado = orcamento.calcular_orcamento_estimado()
     
-    # Prepara lista de serviços com nomes bonitos para exibição
     servicos_display = orcamento.get_servicos_detalhados()
 
     context = {
@@ -494,7 +549,6 @@ def detalhes_orcamento(request, orcamento_id):
 def editar_preco_final(request, orcamento_id):
     orcamento = get_object_or_404(Orcamento, id=orcamento_id)
     
-    # Recriando lista de pacotes para o dropdown do template
     pacotes_disponiveis = [{'nome': v['nome'], 'descricao': v['descricao'], 'valor': k} for k, v in CONSTANTES_PACOTES.items()]
 
     if request.method == 'POST':
@@ -516,17 +570,17 @@ def editar_preco_final(request, orcamento_id):
                             daemon=True
                         )
                         email_thread.start()
-                        messages.success(request, f"✅ Preço final salvo! O e-mail para {orcamento.email} está sendo enviado em segundo plano.")
+                        messages.success(request, f"Preço final salvo! O e-mail para {orcamento.email} está sendo enviado em segundo plano.")
                     else:
-                        messages.success(request, "✅ Preço final salvo com sucesso! (Opção de enviar e-mail desmarcada)")
+                        messages.success(request, "Preço final salvo com sucesso! (Opção de enviar e-mail desmarcada)")
                     
                     return redirect('detalhes_orcamento', orcamento_id=orcamento.id)
                 except Exception as e:
-                     messages.error(request, f"❌ Erro ao salvar: {str(e)}")
+                     messages.error(request, f"Erro ao salvar: {str(e)}")
             else:
-                 messages.error(request, "❌ Valor inválido. Certifique-se de digitar um número maior que zero.")
+                 messages.error(request, "Valor inválido. Certifique-se de digitar um número maior que zero.")
         else:
-            messages.error(request, "❌ Por favor, insira um valor válido para o preço final.")
+            messages.error(request, "Por favor, insira um valor válido para o preço final.")
     
     orcamento_estimado = orcamento.calcular_orcamento_estimado()
     
@@ -545,9 +599,9 @@ def excluir_orcamento(request, orcamento_id):
         try:
             orcamento_nome = orcamento.nome
             orcamento.delete()
-            messages.success(request, f"✅ Orçamento de {orcamento_nome} excluído com sucesso!")
+            messages.success(request, f"Orçamento de {orcamento_nome} excluído com sucesso!")
             return redirect('lista_orcamentos')
         except Exception as e:
-            messages.error(request, f"❌ Erro ao excluir orçamento: {str(e)}")
+            messages.error(request, f"Erro ao excluir orçamento: {str(e)}")
     
     return render(request, 'app/excluir_orcamento.html', {'orcamento': orcamento})
