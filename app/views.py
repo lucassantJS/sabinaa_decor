@@ -45,10 +45,10 @@ def testar_conexao_email():
         return False, f"Falha na conexão: {str(e)}"
 
 def enviar_email_agendamento_servico(agendamento, tipo):
-    """Envia e-mail de agendamento com templates corrigidos"""
+    """Envia e-mail de agendamento - VERSÃO CORRIGIDA DEFINITIVA"""
     global _last_email_time, _email_count
     
-    # Rate limiting: máximo 1 e-mail por segundo
+    # Rate limiting
     current_time = time.time()
     if current_time - _last_email_time < 1:
         return False, "Rate limit atingido"
@@ -59,54 +59,78 @@ def enviar_email_agendamento_servico(agendamento, tipo):
     try:
         if tipo == 'aceito':
             subject = '✅ Confirmação de Agendamento - Sabina Decorações'
-            template = 'app/email_confirmacao_aceito.html'
+            template_html = 'app/email_confirmacao_aceito.html'
         elif tipo == 'recusado':
             subject = '❌ Agendamento Recusado - Sabina Decorações'
-            template = 'app/email_confirmacao_recusado.html'
+            template_html = 'app/email_confirmacao_recusado.html'
         else:
             return False, "Tipo inválido"
         
+        # Contexto para os templates
         context = {
             'nome': agendamento.nome,
-            'data': agendamento.data.strftime('%d/%m/%Y'),  # ✅ Formato BR
+            'data': agendamento.data.strftime('%d/%m/%Y'),
             'hora': agendamento.hora.strftime('%H:%M'),
             'telefone': agendamento.telefone,
             'mensagem': agendamento.mensagem or 'Não informada'
         }
         
-        html_message = render_to_string(template, context)
+        # ✅ CORREÇÃO: Renderizar HTML separadamente
+        html_message = render_to_string(template_html, context)
         
-        # ✅ CORREÇÃO: Criar mensagem de texto simples manualmente
-        plain_message = f"""
-        {'CONFIRMAÇÃO DE AGENDAMENTO' if tipo == 'aceito' else 'AGENDAMENTO RECUSADO'}
+        # ✅ CORREÇÃO: Criar mensagem de texto simples MANUALMENTE
+        if tipo == 'aceito':
+            plain_message = f"""
+CONFIRMAÇÃO DE AGENDAMENTO - Sabina Decorações
+
+Olá {agendamento.nome},
+
+Seu agendamento foi confirmado com sucesso!
+
+📅 Data: {agendamento.data.strftime('%d/%m/%Y')}
+⏰ Hora: {agendamento.hora.strftime('%H:%M')}
+📞 Telefone: {agendamento.telefone}
+
+{('💬 Sua mensagem: ' + agendamento.mensagem) if agendamento.mensagem else ''}
+
+Estamos ansiosos para atendê-lo!
+
+Atenciosamente,
+Sabina Decorações
+"""
+        else:
+            plain_message = f"""
+AGENDAMENTO RECUSADO - Sabina Decorações
+
+Olá {agendamento.nome},
+
+Infelizmente não podemos atender seu agendamento para a data solicitada.
+
+📅 Data solicitada: {agendamento.data.strftime('%d/%m/%Y')}
+⏰ Horário solicitado: {agendamento.hora.strftime('%H:%M')}
+
+Entre em contato conosco para encontrar uma data alternativa.
+
+📞 Telefone: (44) 99999-9999
+📧 E-mail: lucashenri0231@gmail.com
+
+Atenciosamente,
+Sabina Decorações
+"""
         
-        Olá {agendamento.nome},
+        # ✅ CORREÇÃO: Usar EmailMultiAlternatives para controle total
+        from django.core.mail import EmailMultiAlternatives
         
-        {'Seu agendamento foi confirmado com sucesso!' if tipo == 'aceito' else 'Infelizmente não podemos atender seu agendamento.'}
-        
-        Data: {agendamento.data.strftime('%d/%m/%Y')}
-        Hora: {agendamento.hora.strftime('%H:%M')}
-        Telefone: {agendamento.telefone}
-        {'Mensagem: ' + agendamento.mensagem if agendamento.mensagem else ''}
-        
-        {'Estamos ansiosos para atendê-lo!' if tipo == 'aceito' else 'Entre em contato para encontrar uma data alternativa.'}
-        
-        Atenciosamente,
-        Sabina Decorações
-        """
-        
-        # LOG SIMPLIFICADO
-        logger.warning(f"Enviando e-mail {tipo} para {agendamento.email}")
-        
-        send_mail(
+        email = EmailMultiAlternatives(
             subject=subject,
-            message=plain_message.strip(),
+            body=plain_message.strip(),  # Texto simples
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[agendamento.email],
-            html_message=html_message,
-            fail_silently=False,
+            to=[agendamento.email],
         )
+        email.attach_alternative(html_message, "text/html")  # HTML
+        email.send(fail_silently=False)
         
+        logger.warning(f"E-mail {tipo} enviado para {agendamento.email}")
         return True, "Sucesso"
         
     except Exception as e:
@@ -246,6 +270,21 @@ def diagnostico_email(request):
     diagnostics.append(f"🔒 EMAIL_HOST_PASSWORD definido: {'Sim' if hasattr(settings, 'EMAIL_HOST_PASSWORD') and settings.EMAIL_HOST_PASSWORD else 'Não'}")
     
     return HttpResponse("<br>".join(diagnostics))
+
+def testar_sendgrid_direto(request):
+    """Teste DIRETO do SendGrid - sem templates, sem HTML"""
+    try:
+        # Teste MUITO simples - apenas texto
+        send_mail(
+            subject='🚀 TESTE DIRETO SENDGRID - Sabina Decorações',
+            message='Se você está lendo isso, o SendGrid está funcionando PERFEITAMENTE!',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=['lucassant@edu.unifil.br'],
+            fail_silently=False,
+        )
+        return HttpResponse("✅ E-mail de teste DIRETO enviado! Verifique SUA CAIXA DE ENTRADA.")
+    except Exception as e:
+        return HttpResponse(f"❌ Falha no teste direto: {str(e)}")
 
 def testar_email(request):
     """View temporária para testar configuração de e-mail"""
