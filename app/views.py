@@ -19,6 +19,7 @@ import logging
 # Importações dos Models e Constantes
 from .models import Agendamento, Orcamento, FotoGaleria, CategoriaFoto, CONSTANTES_PACOTES, CONSTANTES_SERVICOS
 from .forms import AgendamentoForm, FotoGaleriaForm
+from .email_service import EmailService  # Novo serviço de e-mail
 
 # Configuração de logging
 logger = logging.getLogger(__name__)
@@ -41,84 +42,17 @@ def enviar_email_agendamento_background(agendamento_id, tipo):
     """
     try:
         agendamento = Agendamento.objects.get(id=agendamento_id)
+        success, message = EmailService.enviar_email_agendamento(agendamento, tipo)
         
-        if tipo == 'aceito':
-            subject = 'Confirmação de Agendamento - Sabina Decorações'
-            template = 'app/email_confirmacao_aceito.html'
-        elif tipo == 'recusado':
-            subject = 'Agendamento Recusado - Sabina Decorações'
-            template = 'app/email_confirmacao_recusado.html'
+        if success:
+            logger.info(f"✅ E-mail de {tipo} processado: {message}")
         else:
-            return
-        
-        context = {
-            'nome': agendamento.nome,
-            'data': agendamento.data,
-            'hora': agendamento.hora.strftime('%H:%M'),
-            'telefone': agendamento.telefone,
-            'mensagem': agendamento.mensagem or 'Não informada'
-        }
-        
-        # Renderizar template
-        html_message = render_to_string(template, context)
-        plain_message = strip_tags(html_message)
-        
-        # Usar send_mail que é mais simples e confiável
-        send_mail(
-            subject=subject,
-            message=plain_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[agendamento.email],
-            html_message=html_message,
-            fail_silently=False,
-        )
-        
-        logger.info(f"✅ E-mail de {tipo} enviado com sucesso para {agendamento.email}")
-        
+            logger.error(f"❌ Falha no e-mail de {tipo}: {message}")
+            
     except Agendamento.DoesNotExist:
         logger.error(f"❌ Agendamento ID {agendamento_id} não encontrado")
     except Exception as e:
-        logger.error(f"❌ Erro crítico ao enviar e-mail de {tipo}: {str(e)}")
-        # Tentar fallback
-        enviar_email_fallback_simples(agendamento_id, tipo)
-
-def enviar_email_fallback_simples(agendamento_id, tipo):
-    """Fallback muito simples caso o e-mail HTML falhe"""
-    try:
-        agendamento = Agendamento.objects.get(id=agendamento_id)
-        
-        if tipo == 'aceito':
-            subject = 'Confirmação de Agendamento - Sabina Decorações'
-            message = f"""Olá {agendamento.nome},
-
-Seu agendamento foi CONFIRMADO para:
-Data: {agendamento.data}
-Hora: {agendamento.hora.strftime('%H:%M')}
-
-Agradecemos sua preferência!
-Sabina Decorações"""
-        else:
-            subject = 'Agendamento Recusado - Sabina Decorações'
-            message = f"""Olá {agendamento.nome},
-
-Infelizmente não podemos atender seu agendamento para:
-Data: {agendamento.data}
-Hora: {agendamento.hora.strftime('%H:%M')}
-
-Entre em contato para mais informações.
-Sabina Decorações"""
-        
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[agendamento.email],
-            fail_silently=True,  # Silencioso no fallback
-        )
-        logger.info(f"✅ E-mail fallback de {tipo} enviado")
-        
-    except Exception as e:
-        logger.error(f"❌ Falha no fallback: {str(e)}")
+        logger.error(f"❌ Erro inesperado: {str(e)}")
 
 def task_enviar_email_orcamento(orcamento_id, preco_final_float):
     try:
@@ -359,16 +293,13 @@ def api_verificar_disponibilidade(request):
 def testar_email(request):
     """View temporária para testar configuração de e-mail"""
     try:
-        send_mail(
-            subject='Teste de E-mail - Sabina Decorações',
-            message='Este é um e-mail de teste.',
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[settings.DEFAULT_FROM_EMAIL],
-            fail_silently=False,
-        )
-        return HttpResponse("✅ E-mail enviado com sucesso!")
+        success, message = EmailService.testar_conexao()
+        if success:
+            return HttpResponse("✅ " + message)
+        else:
+            return HttpResponse("❌ " + message)
     except Exception as e:
-        return HttpResponse(f"❌ Erro ao enviar e-mail: {str(e)}")
+        return HttpResponse(f"❌ Erro no teste: {str(e)}")
 
 # --- Views de Administração ---
 
@@ -547,7 +478,7 @@ def editar_preco_final(request, orcamento_id):
                         email_thread = threading.Thread(
                             target=task_enviar_email_orcamento,
                             args=(orcamento.id, preco_final_float),
-                            daemon=True  # ✅ Adicionado daemon=True aqui também
+                            daemon=True
                         )
                         email_thread.start()
                         messages.success(request, f"✅ Preço final salvo! O e-mail para {orcamento.email} está sendo enviado em segundo plano.")
