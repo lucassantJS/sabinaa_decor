@@ -12,11 +12,19 @@ SECRET_KEY = config('SECRET_KEY')
 # Leitura correta do DEBUG (Pega do .env ou assume False)
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# Leitura correta do ALLOWED_HOSTS (Transforma o texto do Railway em Lista)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1', cast=Csv())
+# ✅ CORREÇÃO CRÍTICA: ALLOWED_HOSTS para Railway
+ALLOWED_HOSTS = [
+    'web-production-5b90.up.railway.app',
+    '.railway.app', 
+    'localhost',
+    '127.0.0.1'
+]
 
-# Importante para o Railway (HTTPS)
-CSRF_TRUSTED_ORIGINS = ['https://*.railway.app']
+# ✅ CORREÇÃO: CSRF para domínio específico
+CSRF_TRUSTED_ORIGINS = [
+    'https://web-production-5b90.up.railway.app',
+    'https://*.railway.app'
+]
 
 # --- APLICAÇÃO ---
 INSTALLED_APPS = [
@@ -36,9 +44,16 @@ INSTALLED_APPS = [
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
         },
     },
     'root': {
@@ -51,12 +66,17 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'app': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     },
 }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    "whitenoise.middleware.WhiteNoiseMiddleware", # Logo após security
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -118,20 +138,25 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # --- CONFIGURAÇÕES DE LOGIN/LOGOUT ---
-LOGIN_URL = '/login/' # Escolha um padrão. Antes você tinha 2 diferentes.
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/inicio/'
 LOGOUT_REDIRECT_URL = '/inicio/'
 
-# --- EMAIL (Configuração Segura) ---
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')
+# --- EMAIL (Configuração SendGrid - Railway) ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'apikey'
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='lucashenri0231@gmail.com')
-EMAIL_TIMEOUT = 30
+DEFAULT_FROM_EMAIL = 'lucashenri0231@gmail.com'
+
+# Configurações importantes para evitar timeout
+EMAIL_TIMEOUT = 60
+EMAIL_USE_SSL = False
+
+# Para desenvolvimento local (DEBUG=True) usa console
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Forçando atualizacao do email
