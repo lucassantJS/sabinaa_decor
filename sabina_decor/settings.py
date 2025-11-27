@@ -156,7 +156,7 @@ EMAIL_TIMEOUT = 60
 EMAIL_USE_SSL = False
 
 # Para desenvolvimento local (DEBUG=True) usa console
-if DEBUG:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# if DEBUG:
+#     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
