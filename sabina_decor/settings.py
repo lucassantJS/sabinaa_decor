@@ -1,5 +1,4 @@
 import os
-from dotenv import load_dotenv
 from pathlib import Path
 from decouple import config, Csv 
 """
@@ -13,8 +12,6 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
-load_dotenv()
 
 # CONFIGURAÇÕES DE EMAIL SEGURAS
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'root')
