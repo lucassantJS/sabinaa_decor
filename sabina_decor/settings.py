@@ -2,16 +2,6 @@ import os
 from pathlib import Path
 from decouple import config, Csv
 import dj_database_url
-import socket
-
-try:
-    old_getaddrinfo = socket.getaddrinfo
-    def new_getaddrinfo(*args, **kwargs):
-        responses = old_getaddrinfo(*args, **kwargs)
-        return [response for response in responses if response[0] == socket.AF_INET]
-    socket.getaddrinfo = new_getaddrinfo
-except Exception:
-    pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -113,9 +103,9 @@ LOGOUT_REDIRECT_URL = '/inicio/'
 # --- EMAIL (Configuração Segura) ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
 EMAIL_HOST_USER = 'lucashenri0231@gmail.com'
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD') 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
