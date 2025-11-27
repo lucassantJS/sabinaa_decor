@@ -45,7 +45,7 @@ def testar_conexao_email():
         return False, f"Falha na conexão: {str(e)}"
 
 def enviar_email_agendamento_servico(agendamento, tipo):
-    """Envia e-mail de agendamento com logs mínimos"""
+    """Envia e-mail de agendamento com templates corrigidos"""
     global _last_email_time, _email_count
     
     # Rate limiting: máximo 1 e-mail por segundo
@@ -58,31 +58,49 @@ def enviar_email_agendamento_servico(agendamento, tipo):
     
     try:
         if tipo == 'aceito':
-            subject = 'Confirmação de Agendamento - Sabina Decorações'
+            subject = '✅ Confirmação de Agendamento - Sabina Decorações'
             template = 'app/email_confirmacao_aceito.html'
         elif tipo == 'recusado':
-            subject = 'Agendamento Recusado - Sabina Decorações'
+            subject = '❌ Agendamento Recusado - Sabina Decorações'
             template = 'app/email_confirmacao_recusado.html'
         else:
             return False, "Tipo inválido"
         
         context = {
             'nome': agendamento.nome,
-            'data': agendamento.data,
+            'data': agendamento.data.strftime('%d/%m/%Y'),  # ✅ Formato BR
             'hora': agendamento.hora.strftime('%H:%M'),
             'telefone': agendamento.telefone,
             'mensagem': agendamento.mensagem or 'Não informada'
         }
         
         html_message = render_to_string(template, context)
-        plain_message = strip_tags(html_message)
         
-        # LOG SIMPLIFICADO - apenas warning para reduzir volume
+        # ✅ CORREÇÃO: Criar mensagem de texto simples manualmente
+        plain_message = f"""
+        {'CONFIRMAÇÃO DE AGENDAMENTO' if tipo == 'aceito' else 'AGENDAMENTO RECUSADO'}
+        
+        Olá {agendamento.nome},
+        
+        {'Seu agendamento foi confirmado com sucesso!' if tipo == 'aceito' else 'Infelizmente não podemos atender seu agendamento.'}
+        
+        Data: {agendamento.data.strftime('%d/%m/%Y')}
+        Hora: {agendamento.hora.strftime('%H:%M')}
+        Telefone: {agendamento.telefone}
+        {'Mensagem: ' + agendamento.mensagem if agendamento.mensagem else ''}
+        
+        {'Estamos ansiosos para atendê-lo!' if tipo == 'aceito' else 'Entre em contato para encontrar uma data alternativa.'}
+        
+        Atenciosamente,
+        Sabina Decorações
+        """
+        
+        # LOG SIMPLIFICADO
         logger.warning(f"Enviando e-mail {tipo} para {agendamento.email}")
         
         send_mail(
             subject=subject,
-            message=plain_message,
+            message=plain_message.strip(),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[agendamento.email],
             html_message=html_message,
@@ -92,9 +110,29 @@ def enviar_email_agendamento_servico(agendamento, tipo):
         return True, "Sucesso"
         
     except Exception as e:
-        # LOG DE ERRO APENAS - não use info/error repetitivos
         logger.warning(f"Erro e-mail: {str(e)}")
         return False, f"Erro: {str(e)}"
+    
+def testar_template_email(request):
+    """Teste visual dos templates de e-mail"""
+    from django.template.loader import render_to_string
+    
+    context = {
+        'nome': 'João Silva',
+        'data': '15/12/2024',
+        'hora': '14:30',
+        'telefone': '(44) 99999-9999',
+        'mensagem': 'Gostaria de discutir decoração para festa de aniversário.'
+    }
+    
+    template_type = request.GET.get('tipo', 'aceito')
+    
+    if template_type == 'aceito':
+        html = render_to_string('app/email_confirmacao_aceito.html', context)
+    else:
+        html = render_to_string('app/email_confirmacao_recusado.html', context)
+    
+    return HttpResponse(html)    
 
 def enviar_email_agendamento_background(agendamento_id, tipo):
     """Função background com proteção contra loops"""

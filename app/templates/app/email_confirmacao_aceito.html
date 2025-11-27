@@ -1,228 +1,99 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirmação de Agendamento</title>
+    <meta charset="utf-8">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #4E342E;
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0; 
+            padding: 20px;
             background-color: #f9f9f9;
-            margin: 0;
-            padding: 0;
         }
-        
-        .email-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .email-header {
-            background: linear-gradient(135deg, #8B5E34 0%, #C29B7A 100%);
-            color: white;
-            padding: 30px 20px;
-            text-align: center;
-        }
-        
-        .email-header h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        
-        .email-content {
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: white;
             padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
-        .content-section {
-            margin-bottom: 25px;
-            padding: 20px;
-            background-color: #FDF7F2;
-            border-radius: 6px;
-            border-left: 4px solid #C29B7A;
+        .header { 
+            background: linear-gradient(135deg, #8B5E34 0%, #C29B7A 100%); 
+            color: white; 
+            padding: 30px 20px; 
+            text-align: center; 
+            border-radius: 8px 8px 0 0;
         }
-        
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #8B5E34;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .header h1 { 
+            margin: 0; 
+            font-size: 24px; 
         }
-        
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            border-radius: 6px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        .content { 
+            padding: 30px; 
         }
-        
-        .data-table th {
-            background-color: #F8EBE6;
-            color: #4E342E;
-            font-weight: 600;
-            padding: 12px 15px;
-            text-align: left;
+        .data-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
         }
-        
-        .data-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #E0E0E0;
+        .data-table td { 
+            padding: 12px; 
+            border-bottom: 1px solid #eee; 
         }
-        
-        .data-table tr:last-child td {
-            border-bottom: none;
+        .data-table td:first-child { 
+            font-weight: bold; 
+            width: 30%; 
         }
-        
-        .highlight-box {
-            background-color: #e8f5e8;
-            border-left: 4px solid #28a745;
-            padding: 20px;
-            border-radius: 6px;
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .email-footer {
-            background-color: #F8EBE6;
-            padding: 25px 20px;
-            text-align: center;
-            border-top: 3px solid #C29B7A;
-        }
-        
-        .contact-info {
-            margin: 20px 0;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-        }
-        
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .social-links {
-            margin: 20px 0;
-        }
-        
-        .social-icon {
-            display: inline-block;
-            margin: 0 8px;
-            color: #8B5E34;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        
-        .copyright {
+        .footer { 
+            background-color: #F8EBE6; 
+            padding: 20px; 
+            text-align: center; 
+            border-radius: 0 0 8px 8px;
             margin-top: 20px;
-            font-size: 14px;
-            color: #795548;
-        }
-        
-        @media (max-width: 480px) {
-            .email-content {
-                padding: 20px 15px;
-            }
-            
-            .content-section {
-                padding: 15px;
-            }
-            
-            .data-table {
-                font-size: 14px;
-            }
-            
-            .data-table th, 
-            .data-table td {
-                padding: 8px 10px;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="email-container">
-        <div class="email-header">
-            <h1>✅ Agendamento Confirmado!</h1>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Agendamento Confirmado</h1>
             <p>Sabina Decorações</p>
         </div>
         
-        <div class="email-content">
-            <div class="content-section">
-                <p>Olá <strong>{{ nome }}</strong>,</p>
-                <p>Seu agendamento foi confirmado com sucesso!</p>
-                
-                <div class="highlight-box">
-                    <h3>✅ Agendamento Confirmado!</h3>
-                    <p>Estamos ansiosos para atendê-lo(a)</p>
-                </div>
-            </div>
+        <div class="content">
+            <p>Olá <strong>{{ nome }}</strong>,</p>
+            <p>Seu agendamento foi confirmado com sucesso! Estamos ansiosos para atendê-lo.</p>
             
-            <div class="content-section">
-                <div class="section-title">
-                    <span>📅</span>
-                    <span>Detalhes do Agendamento</span>
-                </div>
-                <table class="data-table">
-                    <tr>
-                        <td><strong>Data:</strong></td>
-                        <td>{{ data|date:"d/m/Y" }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Hora:</strong></td>
-                        <td>{{ hora|time:"H:i" }}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Telefone:</strong></td>
-                        <td>{{ telefone }}</td>
-                    </tr>
-                    {% if mensagem %}
-                    <tr>
-                        <td><strong>Mensagem:</strong></td>
-                        <td>{{ mensagem }}</td>
-                    </tr>
-                    {% endif %}
-                </table>
-            </div>
+            <table class="data-table">
+                <tr>
+                    <td>Data:</td>
+                    <td>{{ data }}</td>
+                </tr>
+                <tr>
+                    <td>Hora:</td>
+                    <td>{{ hora }}</td>
+                </tr>
+                <tr>
+                    <td>Telefone:</td>
+                    <td>{{ telefone }}</td>
+                </tr>
+                {% if mensagem and mensagem != "Não informada" %}
+                <tr>
+                    <td>Sua mensagem:</td>
+                    <td>{{ mensagem }}</td>
+                </tr>
+                {% endif %}
+            </table>
             
-            <div class="content-section">
-                <p><strong>Observações:</strong></p>
-                <p>Caso precise alterar ou cancelar seu agendamento, entre em contato conosco com pelo menos 48 horas de antecedência.</p>
-            </div>
-                    </div>
-                </div>
-            </div>
+            <p><strong>Importante:</strong> Chegue com 15 minutos de antecedência.</p>
         </div>
         
-        <div class="email-footer">
-            <div class="social-links">
-                <a href="#" class="social-icon">Instagram</a>
-                <a href="#" class="social-icon">Facebook</a>
-                <a href="#" class="social-icon">Pinterest</a>
-            </div>
+        <div class="footer">
             <p><strong>Sabina Decorações</strong></p>
-            <p>Transformando seus momentos em memórias inesquecíveis</p>
-            <div class="copyright">
-                <p>© 2025 Sabina Decorações. Todos os direitos reservados.</p>
-            </div>
+            <p>Transformando seus eventos em momentos inesquecíveis</p>
+            <p>📞 Entre em contato: (44) 99999-9999</p>
         </div>
     </div>
 </body>
