@@ -218,10 +218,10 @@ def api_verificar_disponibilidade(request):
 logger = logging.getLogger(__name__)
 def task_email_agendamento(agendamento_id, tipo):
     """
-    Função robusta para envio de e-mails de agendamento
+    Função robusta para envio de e-mails de agendamento - VERSÃO CORRIGIDA
     """
     try:
-        from django.core.mail import EmailMessage
+        from django.core.mail import EmailMultiAlternatives  # Use EmailMultiAlternatives para HTML
         from django.template.loader import render_to_string
         from django.utils.html import strip_tags
         
@@ -248,15 +248,15 @@ def task_email_agendamento(agendamento_id, tipo):
         html_message = render_to_string(template, context)
         plain_message = strip_tags(html_message)
         
-        # Enviar e-mail
-        email = EmailMessage(
+        # CORREÇÃO: Usar EmailMultiAlternatives em vez de EmailMessage
+        email = EmailMultiAlternatives(
             subject=subject,
-            body=plain_message,
+            body=plain_message,  # Versão texto simples
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[agendamento.email],
             reply_to=[settings.DEFAULT_FROM_EMAIL],
         )
-        email.attach_alternative(html_message, "text/html")
+        email.attach_alternative(html_message, "text/html")  # Agora este método existe
         email.send(fail_silently=False)
         
         logger.info(f"E-mail de {tipo} enviado com sucesso para {agendamento.email}")
