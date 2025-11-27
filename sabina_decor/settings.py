@@ -124,14 +124,17 @@ LOGOUT_REDIRECT_URL = '/inicio/'
 
 # --- EMAIL (Configuração Segura) ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'lucashenri0231@gmail.com'
+EMAIL_HOST_USER = 'apikey'  # Isto é FIXO - não mude!
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Timeout para operações de e-mail
+EMAIL_TIMEOUT = 30
 
 # Forçando atualizacao do email

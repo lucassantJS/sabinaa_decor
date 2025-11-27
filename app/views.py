@@ -24,6 +24,41 @@ from .email_service import EmailService  # Novo serviço de e-mail
 # Configuração de logging
 logger = logging.getLogger(__name__)
 
+def diagnostico_email(request):
+    """View para diagnóstico completo do problema de e-mail"""
+    import socket
+    from django.conf import settings
+    
+    diagnostics = []
+    
+    # Teste de DNS
+    try:
+        socket.gethostbyname('smtp.gmail.com')
+        diagnostics.append("✅ DNS do Gmail resolvido com sucesso")
+    except Exception as e:
+        diagnostics.append(f"❌ Falha no DNS: {e}")
+    
+    # Teste de conectividade de rede
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(10)
+        result = sock.connect_ex(('smtp.gmail.com', 587))
+        sock.close()
+        if result == 0:
+            diagnostics.append("✅ Conexão com smtp.gmail.com:587 bem-sucedida")
+        else:
+            diagnostics.append(f"❌ Falha na conexão com smtp.gmail.com:587 (código: {result})")
+    except Exception as e:
+        diagnostics.append(f"❌ Erro de socket: {e}")
+    
+    # Verificar configurações
+    diagnostics.append(f"📧 EMAIL_HOST: {getattr(settings, 'EMAIL_HOST', 'Não definido')}")
+    diagnostics.append(f"🔑 EMAIL_PORT: {getattr(settings, 'EMAIL_PORT', 'Não definido')}")
+    diagnostics.append(f"👤 EMAIL_HOST_USER: {getattr(settings, 'EMAIL_HOST_USER', 'Não definido')}")
+    diagnostics.append(f"🔒 EMAIL_HOST_PASSWORD definido: {'Sim' if hasattr(settings, 'EMAIL_HOST_PASSWORD') and settings.EMAIL_HOST_PASSWORD else 'Não'}")
+    
+    return HttpResponse("<br>".join(diagnostics))
+
 # --- Funções Auxiliares ---
 def converter_preco_input(valor_str):
     """Converte string 'R$ 1.200,50' para float 1200.50"""
