@@ -14,6 +14,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
+import logging
 
 # Importações dos Models e Constantes
 from .models import Agendamento, Orcamento, FotoGaleria, CategoriaFoto, CONSTANTES_PACOTES, CONSTANTES_SERVICOS
@@ -213,17 +214,106 @@ def api_verificar_disponibilidade(request):
     except ValueError:
         return JsonResponse({'error': 'Formato de data inválido'}, status=400)
 
+
+logger = logging.getLogger(__name__)
 def task_email_agendamento(agendamento_id, tipo):
+    """
+    Função robusta para envio de e-mails de agendamento
+    """
+    try:
+        from django.core.mail import EmailMessage
+        from django.template.loader import render_to_string
+        from django.utils.html import strip_tags
+        
+        agendamento = Agendamento.objects.get(id=agendamento_id)
+        
+        if tipo == 'aceito':
+            subject = 'Confirmação de Agendamento - Sabina Decorações'
+            template = 'app/email_confirmacao_aceito.html'
+        elif tipo == 'recusado':
+            subject = 'Agendamento Recusado - Sabina Decorações'
+            template = 'app/email_confirmacao_recusado.html'
+        else:
+            return
+        
+        context = {
+            'nome': agendamento.nome,
+            'data': agendamento.data,
+            'hora': agendamento.hora.strftime('%H:%M'),
+            'telefone': agendamento.telefone,
+            'mensagem': agendamento.mensagem or 'Não informada'
+        }
+        
+        # Renderizar template
+        html_message = render_to_string(template, context)
+        plain_message = strip_tags(html_message)
+        
+        # Enviar e-mail
+        email = EmailMessage(
+            subject=subject,
+            body=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[agendamento.email],
+            reply_to=[settings.DEFAULT_FROM_EMAIL],
+        )
+        email.attach_alternative(html_message, "text/html")
+        email.send(fail_silently=False)
+        
+        logger.info(f"E-mail de {tipo} enviado com sucesso para {agendamento.email}")
+        
+    except Agendamento.DoesNotExist:
+        logger.error(f"Agendamento ID {agendamento_id} não encontrado")
+    except Exception as e:
+        logger.error(f"Erro crítico ao enviar e-mail de {tipo}: {str(e)}")
+        # Tentar enviar e-mail simples como fallback
+        enviar_email_fallback(agendamento_id, tipo, str(e))
+
+def enviar_email_fallback(agendamento_id, tipo, erro_original):
+    """
+    Fallback simples caso o e-mail HTML falhe
+    """
     try:
         agendamento = Agendamento.objects.get(id=agendamento_id)
+        
         if tipo == 'aceito':
-            agendamento._enviar_email_confirmacao()
-        elif tipo == 'recusado':
-            agendamento._enviar_email_recusado()
-    except Agendamento.DoesNotExist:
-        print(f"Agendamento ID {agendamento_id} não encontrado para envio de email.")
+            subject = 'Confirmação de Agendamento - Sabina Decorações'
+            message = f"""
+            Olá {agendamento.nome},
+            
+            Seu agendamento foi confirmado para:
+            Data: {agendamento.data}
+            Hora: {agendamento.hora.strftime('%H:%M')}
+            
+            Obrigado,
+            Equipe Sabina Decorações
+            """
+        else:
+            subject = 'Agendamento Recusado - Sabina Decorações'
+            message = f"""
+            Olá {agendamento.nome},
+            
+            Infelizmente não podemos atender seu agendamento para:
+            Data: {agendamento.data}
+            Hora: {agendamento.hora.strftime('%H:%M')}
+            
+            Entre em contato para mais informações.
+            
+            Atenciosamente,
+            Equipe Sabina Decorações
+            """
+        
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[agendamento.email],
+            fail_silently=False,
+        )
+        
+        logger.info(f"E-mail fallback de {tipo} enviado")
+        
     except Exception as e:
-        print(f"Erro ao enviar e-mail de agendamento ({tipo}): {e}")
+        logger.error(f"Falha até no e-mail fallback: {str(e)}. Erro original: {erro_original}")
 
 def task_enviar_email_orcamento(orcamento_id, preco_final_float):
     try:
@@ -324,15 +414,19 @@ def aceitar_agendamento(request, pk):
         agendamento.aceito_por = request.user
         agendamento.recusado_por = None
         
-        # Validação manual pois estamos setando campos diretos
         agendamento.clean() 
         agendamento.save()
         
-        threading.Thread(target=task_email_agendamento, args=(agendamento.id, 'aceito')).start()
-        messages.success(request, "Agendamento aceito! E-mail de confirmação sendo enviado.")
+        # Tentativa síncrona primeiro para debug
+        try:
+            task_email_agendamento(agendamento.id, 'aceito')
+            messages.success(request, "Agendamento aceito! E-mail de confirmação enviado.")
+        except Exception as e:
+            # Se falhar síncrono, tentar assíncrono
+            threading.Thread(target=task_email_agendamento, args=(agendamento.id, 'aceito'), daemon=True).start()
+            messages.success(request, "Agendamento aceito! E-mail sendo processado em background.")
         
     except ValidationError as e:
-        # Extrai mensagem limpa do ValidationError
         if hasattr(e, 'message'):
             msg = e.message
         elif hasattr(e, 'messages'):
@@ -340,11 +434,24 @@ def aceitar_agendamento(request, pk):
         else:
             msg = str(e)
         messages.error(request, f"Não foi possível aceitar: {msg}")
-
     except Exception as e:
         messages.error(request, f"Erro inesperado: {str(e)}")
         
     return redirect('lista_agendamentos')
+
+def testar_email(request):
+    """View temporária para testar configuração de e-mail"""
+    try:
+        send_mail(
+            subject='Teste de E-mail - Sabina Decorações',
+            message='Este é um e-mail de teste.',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.DEFAULT_FROM_EMAIL],
+            fail_silently=False,
+        )
+        return HttpResponse("E-mail enviado com sucesso!")
+    except Exception as e:
+        return HttpResponse(f"Erro ao enviar e-mail: {str(e)}")
 
 @user_passes_test(eh_administrador, login_url='/admin/login/')
 def recusar_agendamento(request, pk):
@@ -354,9 +461,14 @@ def recusar_agendamento(request, pk):
     agendamento.aceito_por = None
     agendamento.save()
 
-    threading.Thread(target=task_email_agendamento, args=(agendamento.id, 'recusado')).start()
+    # Mesma lógica robusta de e-mail
+    try:
+        task_email_agendamento(agendamento.id, 'recusado')
+        messages.success(request, "Agendamento recusado. E-mail enviado.")
+    except Exception as e:
+        threading.Thread(target=task_email_agendamento, args=(agendamento.id, 'recusado'), daemon=True).start()
+        messages.success(request, "Agendamento recusado. E-mail sendo processado.")
 
-    messages.success(request, "Agendamento recusado.")
     return redirect('lista_agendamentos')
 
 @user_passes_test(eh_administrador, login_url=settings.LOGIN_URL)
