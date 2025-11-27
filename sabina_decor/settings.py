@@ -58,17 +58,17 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'WARNING',  # ⚠️ Mude de INFO para WARNING
+        'level': 'WARNING',
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'WARNING',  # ⚠️ Mude de INFO para WARNING
+            'level': 'WARNING',
             'propagate': False,
         },
         'app': {
             'handlers': ['console'],
-            'level': 'WARNING',  # ⚠️ Mude de DEBUG para WARNING
+            'level': 'WARNING',
             'propagate': False,
         },
     },
@@ -106,7 +106,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'sabina_decor.wsgi.application'
 
 # --- BANCO DE DADOS ---
-# Usa SQLite localmente se não tiver DATABASE_URL, e Postgres no Railway
 DATABASES = {
     'default': dj_database_url.config(
         default=config('DATABASE_URL', default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
@@ -142,21 +141,20 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/inicio/'
 LOGOUT_REDIRECT_URL = '/inicio/'
 
-# --- EMAIL (Configuração SendGrid - Railway) ---
+# --- EMAIL (CONFIGURAÇÃO GMAIL COM SENHA DE APP) ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'apikey'
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = 'lucashenri0231@gmail.com'
+EMAIL_HOST = config('SMTP_SERVER', default='smtp.gmail.com')
+EMAIL_PORT = config('SMTP_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('SMTP_USERNAME', default='')
+EMAIL_HOST_PASSWORD = config('SMTP_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('EMAIL_FROM', default=EMAIL_HOST_USER)
 
 # Configurações importantes para evitar timeout
-EMAIL_TIMEOUT = 60
-EMAIL_USE_SSL = False
+EMAIL_TIMEOUT = 30
 
 # Para desenvolvimento local (DEBUG=True) usa console
-# if DEBUG:
-#     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
