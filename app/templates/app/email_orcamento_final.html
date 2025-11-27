@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orçamento - Sabina Decorações</title>
+    <style type="text/css">
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        body { margin: 0; padding: 0; background-color: #f9f9f9; }
+        a { color: #8B5E34; text-decoration: none; }
+        .info-label { font-weight: 600; min-width: 140px; color: #5D4037; }
+        .info-item { padding-bottom: 8px; }
+        .social-icon { color: #8B5E34; text-decoration: none; font-weight: 500; }
+        .highlight-box h3 { margin: 0 0 5px 0; }
+        .highlight-box p { margin: 0; font-size: 14px; color: #388e3c; }
+    </style>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #4E342E; background-color: #f9f9f9; margin: 0; padding: 0;">
+
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background: linear-gradient(135deg, #8B5E34 0%, #C29B7A 100%); color: white; padding: 30px 20px; text-align: center;">
+            <tr>
+                <td style="padding: 30px 20px; text-align: center;">
+                    <h1 style="font-size: 24px; margin: 0 0 10px 0; font-weight: 600;">💰 Orçamento - Sabina Decorações</h1>
+                    <p style="font-size: 16px; margin: 0; opacity: 0.9;">Seu orçamento está pronto!</p>
+                </td>
+            </tr>
+        </table>
+        
+        <div style="padding: 30px;">
+
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 25px; padding: 20px; background-color: #FDF7F2; border-radius: 6px; border-left: 4px solid #C29B7A;">
+                <tr>
+                    <td style="padding: 0;">
+                        <p style="margin: 0 0 5px 0;"><strong>Prezado(a):</strong> {{ nome }}</p>
+                        <p style="margin: 0 0 5px 0;"><strong>Telefone:</strong> {{ telefone }}</p>
+                        <p style="margin: 0 0 15px 0;"><strong>Email:</strong> {{ email }}</p>
+
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #e8f5e8; border-left: 4px solid #28a745; padding: 20px; border-radius: 6px; text-align: center;">
+                            <tr>
+                                <td style="padding: 20px; text-align: center;">
+                                    <h3 style="font-size: 20px; color: #28a745; margin: 0 0 5px 0;">🎉 Preço Final Definido: {{ preco_final }}</h3>
+                                    <p style="margin: 0; font-size: 14px; color: #388e3c;">Este valor já inclui todos os serviços selecionados</p>
+                                </td>
+                            </tr>
+                        </table>
+                        </td>
+                </tr>
+            </table>
+
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 25px; padding: 20px; background-color: #FDF7F2; border-radius: 6px; border-left: 4px solid #C29B7A;">
+                <tr>
+                    <td style="padding: 0;">
+                        <div style="font-size: 18px; font-weight: 600; color: #8B5E34; margin-bottom: 15px;">
+                            <span style="display: inline-block; margin-right: 8px;">📋</span>
+                            <span style="vertical-align: top;">Detalhes do Seu Evento</span>
+                        </div>
+                        
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                                <td style="padding: 0 0 8px 0;">
+                                    <span style="font-weight: 600; min-width: 140px; color: #5D4037; display: inline-block;">🎭 Tipo de Evento:</span>
+                                    <span>{{ tipo_evento }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 0 8px 0;">
+                                    <span style="font-weight: 600; min-width: 140px; color: #5D4037; display: inline-block;">👥 Nº de Convidados:</span>
+                                    <span>{{ num_convidados }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 0 8px 0;">
+                                    <span style="font-weight: 600; min-width: 140px; color: #5D4037; display: inline-block;">📍 Local:</span>
+                                    <span>{{ local_evento }}</span>
+                                </td>
+                            </tr>
+                            {% if ideias and ideias.strip %}
+                            <tr>
+                                <td style="padding: 0 0 8px 0;">
+                                    <span style="font-weight: 600; min-width: 140px; color: #5D4037; display: inline-block;">💡 Suas Ideias:</span>
+                                    <span>{{ ideias }}</span>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                        </td>
+                </tr>
+            </table>
+            
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 25px; padding: 20px; background-color: #FDF7F2; border-radius: 6px; border-left: 4px solid #C29B7A;">
+                <tr>
+                    <td style="padding: 0;">
+                        <div style="font-size: 18px; font-weight: 600; color: #8B5E34; margin-bottom: 15px;">
+                            <span style="display: inline-block; margin-right: 8px;">🎁</span>
+                            <span style="vertical-align: top;">Pacote Selecionado</span>
+                        </div>
+                        <p style="margin: 0 0 5px 0;"><strong>{{ pacote.nome }}</strong></p>
+                        <p style="margin: 0;">{{ pacote.descricao }}</p>
+                    </td>
+                </tr>
+            </table>
+
+            {% if servicos %}
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 25px; padding: 20px; background-color: #FDF7F2; border-radius: 6px; border-left: 4px solid #C29B7A;">
+                <tr>
+                    <td style="padding: 0;">
+                        <div style="font-size: 18px; font-weight: 600; color: #8B5E34; margin-bottom: 15px;">
+                            <span style="display: inline-block; margin-right: 8px;">✨</span>
+                            <span style="vertical-align: top;">Serviços Adicionais</span>
+                        </div>
+                        <table class="data-table" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse; margin-top: 15px; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                            <thead>
+                                <tr style="background-color: #F8EBE6; color: #4E342E;">
+                                    <th style="font-weight: 600; padding: 12px 15px; text-align: left; border-bottom: 1px solid #E0E0E0;">Serviço</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for servico in servicos %}
+                                <tr>
+                                    <td style="padding: 12px 15px; border-bottom: 1px solid #E0E0E0;">✅ {{ servico.descricao }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            {% endif %}
+
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 25px; padding: 20px; background-color: #FDF7F2; border-radius: 6px; border-left: 4px solid #C29B7A;">
+                <tr>
+                    <td style="padding: 0;">
+                        <div style="font-size: 18px; font-weight: 600; color: #8B5E34; margin-bottom: 15px;">
+                            <span style="display: inline-block; margin-right: 8px;">📞</span>
+                            <span style="vertical-align: top;">Próximos Passos</span>
+                        </div>
+                        <p style="margin: 0 0 15px 0;">Entre em contato conosco para confirmar a data e formalizar o contrato:</p>
+                        
+                        <div class="contact-info" style="margin: 20px 0;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                    <td style="padding-right: 20px;">
+                                        <div style="display: inline-block;">
+                                            <span style="display: inline-block; margin-right: 5px;">📧</span>
+                                            <span style="vertical-align: top;">sabina@decoracoes.com</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div style="display: inline-block;">
+                                            <span style="display: inline-block; margin-right: 5px;">📞</span>
+                                            <span style="vertical-align: top;">(11) 98412-4685</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="padding-top: 10px;">
+                                        <span style="display: inline-block; margin-right: 5px;">🕒</span>
+                                        <span style="vertical-align: top;">Segunda a Sexta, 9h às 18h</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+        
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #F8EBE6; padding: 25px 20px; text-align: center; border-top: 3px solid #C29B7A;">
+            <tr>
+                <td style="padding: 25px 20px; text-align: center;">
+                    <div class="social-links" style="margin: 20px 0;">
+                        <a href="https://www.instagram.com/sabinadecoracao/" class="social-icon" style="display: inline-block; margin: 0 8px; color: #8B5E34; text-decoration: none; font-weight: 500;">Instagram</a>
+                        <span style="color: #4E342E;">|</span>
+                        <a href="https://www.facebook.com/sabina.decoracoes.2025/" class="social-icon" style="display: inline-block; margin: 0 8px; color: #8B5E34; text-decoration: none; font-weight: 500;">Facebook</a>
+                    </div>
+                    <p style="margin: 0 0 5px 0;"><strong>Sabina Decorações</strong></p>
+                    <p style="margin: 0 0 20px 0;">Transformando seus momentos em memórias inesquecíveis</p>
+                    <div class="copyright" style="margin-top: 20px; font-size: 14px; color: #795548;">
+                        <p style="margin: 0;">© 2025 Sabina Decorações. Todos os direitos reservados.</p>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        
+    </div>
+</body>
+</html>

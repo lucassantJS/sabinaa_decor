@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    {% load widget_tweaks %}
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Criar Agendamento | Sabina DecoraFácil</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --cor-primaria: #C29B7A;
+            --cor-secundaria: #F8EBE6;
+            --cor-acento: #8B5E34;
+            --cor-fundo: #FDF7F2;
+            --cor-texto: #4E342E;
+        }
+
+        body {
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            font-family: "Segoe UI", Tahoma, sans-serif;
+        }
+
+        .navbar-light {
+            background-color: var(--cor-secundaria) !important;
+            border-bottom: 2px solid var(--cor-primaria);
+        }
+
+        .navbar-light .navbar-brand,
+        .navbar-light .nav-link {
+            color: var(--cor-texto) !important;
+        }
+
+        .navbar-light .navbar-brand:hover,
+        .navbar-light .nav-link:hover {
+            color: var(--cor-primaria) !important;
+        }
+
+        .navbar-toggler-icon {
+            filter: invert(32%) sepia(16%) saturate(1264%) hue-rotate(10deg) brightness(95%) contrast(92%);
+        }
+
+        .btn-primary {
+            background-color: var(--cor-primaria) !important;
+            border-color: var(--cor-primaria) !important;
+            color: #fff !important;
+        }
+
+        .btn-primary:hover {
+            background-color: #AA7D5F !important;
+            border-color: #AA7D5F !important;
+        }
+
+        h1, h2, h3, h4, h5 {
+            color: var(--cor-acento);
+            font-weight: 600;
+        }
+
+        label {
+            font-weight: 500;
+        }
+
+        input.form-control,
+        textarea.form-control,
+        select.form-control {
+            border: 1px solid var(--cor-acento);
+            background-color: #FFFDFC;
+        }
+
+        input.form-control:focus,
+        textarea.form-control:focus,
+        select.form-control:focus {
+            border-color: var(--cor-primaria);
+            box-shadow: 0 0 0 0.2rem rgba(194, 155, 122, 0.25);
+        }
+
+        section.py-5 {
+            padding: 3rem 0;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.5rem !important;
+        }
+
+        footer {
+            background-color: var(--cor-secundaria);
+            border-top: 2px solid var(--cor-primaria);
+        }
+
+        footer .container {
+            color: var(--cor-texto);
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+                <img src="{% static 'agendamento/images/sabinaLogo.png' %}" alt="Sabina Decorações" 
+                    style="height: 80px;" class="me-2">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'inicio' %}">Início</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'simulador_orcamento' %}">Orçamento</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'cria_agendamento' %}">Agendamento</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{% url 'galeria_fotos' %}">Galeria</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'sobre' %}">Sobre</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="py-5" style="background-color: var(--cor-secundaria);">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="form-container p-4" style="background-color: var(--cor-fundo); border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <h1 class="text-center mb-4">Criar Agendamento</h1>
+                        <form method="post">
+
+                            {% if form.non_field_errors %}
+                            <div class="alert alert-danger text-center mb-4">
+                              {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                              {% endfor %}
+                            </div>
+                            {% endif %}
+                                                     
+                            
+
+                            {% csrf_token %}
+                            <div class="mb-3 text-center">
+                                <label for="{{ form.nome.id_for_label }}" class="form-label fw-bold">Nome:</label>
+                                <div class="d-flex justify-content-center">
+                                    <input type="text" name="{{ form.nome.name }}" id="{{ form.nome.id_for_label }}" 
+                                           class="form-control text-center" style="max-width: 300px;" value="{{ form.nome.value|default:'' }}">
+                                </div>
+                                {% if form.nome.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.nome.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3 text-center">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">Email:</label>
+                                <div class="d-flex justify-content-center">
+                                    <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" 
+                                           class="form-control text-center" style="max-width: 300px;" value="{{ form.email.value|default:'' }}">
+                                </div>
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.email.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3 text-center">
+                                <label for="{{ form.telefone.id_for_label }}" class="form-label">Telefone:</label>
+                                <div class="d-flex justify-content-center">
+                                    <input type="text" name="{{ form.telefone.name }}" id="{{ form.telefone.id_for_label }}" 
+                                           class="form-control text-center" style="max-width: 300px;" value="{{ form.telefone.value|default:'' }}">
+                                </div>
+                                {% if form.telefone.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.telefone.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3 text-center">
+                                <label for="{{ form.data.id_for_label }}" class="form-label">Data do Evento:</label>
+                                <div class="d-flex justify-content-center">
+                                    <input type="date" name="{{ form.data.name }}" id="{{ form.data.id_for_label }}" 
+                                           class="form-control text-center" style="max-width: 300px;" value="{{ form.data.value|default:'' }}">
+                                </div>
+                                {% if form.data.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.data.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3 text-center">
+                                <label for="{{ form.hora.id_for_label }}" class="form-label">Hora do Evento:</label>
+                                <div class="d-flex justify-content-center">
+                                    <input type="time" name="{{ form.hora.name }}" id="{{ form.hora.id_for_label }}" 
+                                           class="form-control text-center" style="max-width: 300px;" value="{{ form.hora.value|default:'' }}">
+                                </div>
+                                {% if form.hora.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.hora.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3 text-center">
+                                <label for="{{ form.mensagem.id_for_label }}" class="form-label">Mensagem:</label>
+                                <div class="d-flex justify-content-center">
+                                    <textarea name="{{ form.mensagem.name }}" id="{{ form.mensagem.id_for_label }}" 
+                                              class="form-control text-center" style="max-width: 300px;" rows="3">{{ form.mensagem.value|default:'' }}</textarea>
+                                </div>
+                                {% if form.mensagem.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.mensagem.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
+                                <button type="submit" class="btn btn-primary">Criar Agendamento</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="text-center text-muted py-4">
+        <div class="container">
+            <small>© 2025 Sabina Decorações. Todos os direitos reservados.</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

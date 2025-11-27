@@ -1,0 +1,53 @@
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Confirmação de Agendamento</title>
+        <style>
+            body { font-family: Arial, sans-serif; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #f8f9fa; padding: 20px; text-align: center; }
+            .content { padding: 30px; line-height: 1.6; }
+            .footer { text-align: center; padding: 20px; color: #6c757d; font-size: 0.9em; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2>Agendamento Confirmado!</h2>
+            </div>
+            
+            <div class="content">
+                <p>Olá <strong>{{ nome }}</strong>,</p>
+                <p>Seu agendamento foi confirmado com sucesso. Seguem os detalhes:</p>
+                
+                <table>
+                    <tr>
+                        <td><strong>Data:</strong></td>
+                        <td>{{ data|date:"d/m/Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hora:</strong></td>
+                        <td>{{ hora|time:"H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Telefone:</strong></td>
+                        <td>{{ telefone }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mensagem:</strong></td>
+                        <td>{{ mensagem }}</td>
+                    </tr>
+                </table>
+                
+                <p style="margin-top: 20px;">
+                    Caso precise alterar ou cancelar seu agendamento, entre em contato conosco.
+                </p>
+            </div>
+            
+            <div class="footer">
+                <p>Atenciosamente,<br>Equipe de Agendamentos</p>
+                <p>© {% now "Y" %} Todos os direitos reservados</p>
+            </div>
+        </div>
+    </body>
+    </html>

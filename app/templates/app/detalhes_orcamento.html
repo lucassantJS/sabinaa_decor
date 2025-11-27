@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Detalhes do Orçamento | Sabina Decorações</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --cor-primaria: #C29B7A;
+            --cor-secundaria: #F8EBE6;
+            --cor-acento: #8B5E34;
+            --cor-fundo: #FDF7F2;
+            --cor-texto: #4E342E;
+        }
+
+        body {
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            font-family: "Segoe UI", Tahoma, sans-serif;
+        }
+
+        .navbar-light {
+            background-color: var(--cor-secundaria) !important;
+            border-bottom: 2px solid var(--cor-primaria);
+        }
+
+        .navbar-light .navbar-brand,
+        .navbar-light .nav-link {
+            color: var(--cor-texto) !important;
+        }
+
+        .navbar-light .navbar-brand:hover,
+        .navbar-light .nav-link:hover {
+            color: var(--cor-primaria) !important;
+        }
+
+        .navbar-toggler-icon {
+            filter: invert(32%) sepia(16%) saturate(1264%) hue-rotate(10deg) brightness(95%) contrast(92%);
+        }
+
+        .btn-primary {
+            background-color: var(--cor-primaria) !important;
+            border-color: var(--cor-primaria) !important;
+            color: #fff !important;
+        }
+
+        .btn-primary:hover {
+            background-color: #AA7D5F !important;
+            border-color: #AA7D5F !important;
+        }
+
+        .btn-success {
+            background-color: var(--cor-acento) !important;
+            border-color: var(--cor-acento) !important;
+        }
+
+        .btn-success:hover {
+            background-color: #6d4c2e !important;
+            border-color: #6d4c2e !important;
+        }
+
+        .btn-outline-secondary {
+            color: var(--cor-texto) !important;
+            border-color: var(--cor-texto) !important;
+        }
+
+        .btn-outline-secondary:hover {
+            color: #fff !important;
+            background-color: var(--cor-texto) !important;
+        }
+
+        .btn-outline-danger {
+            color: #dc3545 !important;
+            border-color: #dc3545 !important;
+        }
+
+        .btn-outline-danger:hover {
+            color: #fff !important;
+            background-color: #dc3545 !important;
+        }
+
+        h1, h2, h3, h4, h5 {
+            color: var(--cor-acento);
+            font-weight: 600;
+        }
+
+        .card-header {
+            background-color: var(--cor-secundaria) !important;
+            color: var(--cor-texto) !important;
+            border-bottom: 2px solid var(--cor-primaria);
+        }
+
+        .card {
+            border: 1px solid var(--cor-primaria);
+            border-radius: 8px;
+        }
+
+        .info-box {
+            background-color: var(--cor-fundo);
+            border-left: 4px solid var(--cor-primaria);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+
+        .price-highlight {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--cor-acento);
+        }
+
+        .alert-success {
+            background-color: rgba(194, 155, 122, 0.1);
+            border-color: var(--cor-primaria);
+            color: var(--cor-texto);
+        }
+
+        footer {
+            background-color: var(--cor-secundaria);
+            border-top: 2px solid var(--cor-primaria);
+        }
+
+        .user-info {
+            background-color: var(--cor-secundaria);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            margin-left: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-login-admin {
+            background-color: var(--cor-primaria) !important;
+            border-color: var(--cor-primaria) !important;
+            color: #fff !important;
+        }
+
+        .btn-login-admin:hover {
+            background-color: var(--cor-acento) !important;
+            border-color: var(--cor-acento) !important;
+            color: #fff !important;
+        }
+
+        .lead {
+            color: var(--cor-texto);
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Barra de informações do usuário (igual à página inicial) -->
+    <div class="bg-light py-2 border-bottom">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="text-muted small">Sabina Decorações - Detalhes do Orçamento</div>
+            <div class="d-flex align-items-center">
+                {% if user.is_authenticated %}
+                    <span class="user-info">
+                        <i class="bi bi-person-check"></i> 
+                        Olá, {{ user.username }} 
+                        {% if user.is_staff %}(Administrador){% endif %}
+                    </span>
+                    <a href="{% url 'custom_logout' %}" class="btn btn-outline-danger btn-sm ms-2">
+                        <i class="bi bi-box-arrow-right"></i> Sair
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-login-admin btn-sm">
+                        <i class="bi bi-person-gear"></i> Login Administrativo
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="{% url 'inicio' %}">
+                <img src="{% static 'agendamento/images/sabinaLogo.png' %}" alt="Sabina Decorações" 
+                    style="height: 80px;" class="me-2">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'inicio' %}">Início</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{% url 'lista_orcamentos' %}">Lista de Orçamentos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'galeria_fotos' %}">Galeria</a></li>
+                    
+                    <!-- Links administrativos (visíveis apenas para administradores) -->
+                    {% if user.is_authenticated and user.is_staff %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-gear"></i> Administrativo
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'lista_agendamentos' %}">
+                                <i class="bi bi-calendar-check"></i> Gerenciar Agendamentos
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'lista_orcamentos' %}">
+                                <i class="bi bi-cash-coin"></i> Gerenciar Orçamentos
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'gerenciar_galeria' %}">
+                                <i class="bi bi-images"></i> Gerenciar Galeria
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/admin/">
+                                <i class="bi bi-speedometer2"></i> Painel Admin Django
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Detalhes do Orçamento #{{ orcamento.id }}</h1>
+            <a href="{% url 'lista_orcamentos' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar para a lista
+            </a>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-person-circle"></i> Informações do Cliente
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-box">
+                            <strong>Nome:</strong> {{ orcamento.nome }}
+                        </div>
+                        <div class="info-box">
+                            <strong>Telefone:</strong> {{ orcamento.telefone }}
+                        </div>
+                        <div class="info-box">
+                            <strong>Email:</strong> {{ orcamento.email }}
+                        </div>
+                        <div class="info-box">
+                            <strong>Data de Criação:</strong> {{ orcamento.data_criacao|date:"d/m/Y H:i" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-calendar-event"></i> Detalhes do Evento
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-box">
+                            <strong>Tipo de Evento:</strong> {{ orcamento.get_tipo_evento_display }}
+                        </div>
+                        <div class="info-box">
+                            <strong>Número de Convidados:</strong> {{ orcamento.num_convidados }}
+                        </div>
+                        <div class="info-box">
+                            <strong>Local do Evento:</strong> 
+                            {% if orcamento.local_evento == 'interno' %}
+                                Espaço Interno
+                            {% else %}
+                                Espaço Externo
+                            {% endif %}
+                        </div>
+                        <div class="info-box">
+                            <strong>Pacote Selecionado:</strong> {{ orcamento.get_pacote_selecionado_display }}
+                        </div>
+                        
+                        <div class="info-box">
+                            <strong>Orçamento Estimado:</strong> 
+                            <span class="fw-bold" style="color: var(--cor-acento);">R$ {{ orcamento_estimado|floatformat:2 }}</span>
+                        </div>
+                        {% if orcamento.preco_final %}
+                        <div class="info-box" style="background-color: rgba(194, 155, 122, 0.1);">
+                            <strong>Preço Final:</strong> 
+                            <span class="price-highlight">R$ {{ orcamento.preco_final }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-list-check"></i> Serviços Adicionais Selecionados
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if orcamento.get_servicos_list %}
+                            <div class="row">
+                                {% for servico in orcamento.get_servicos_list %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" checked disabled style="accent-color: var(--cor-primaria);">
+                                            <label class="form-check-label">
+                                                {% if servico == 'fotografo' %}Fotógrafo profissional
+                                                {% elif servico == 'buffet' %}Serviço de buffet
+                                                {% elif servico == 'dj' %}DJ e equipamento de som
+                                                {% elif servico == 'videomaker' %}Cobertura em vídeo
+                                                {% elif servico == 'convites' %}Convites personalizados
+                                                {% elif servico == 'lembrancinhas' %}Lembrancinhas personalizadas
+                                                {% else %}{{ servico }}{% endif %}
+                                            </label>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">Nenhum serviço adicional selecionado.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if orcamento.ideias %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-lightbulb"></i> Ideias e Observações do Cliente
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">{{ orcamento.ideias }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-gear"></i> Ações
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6>Preço Final</h6>
+                                <div class="d-grid gap-2">
+                                    {% if orcamento.preco_final %}
+                                    <div class="alert alert-success text-center">
+                                        <strong>Preço Definido:</strong><br>
+                                        <span class="price-highlight">R$ {{ orcamento.preco_final|floatformat:2 }}</span>
+                                    </div>
+                                {% endif %}
+                                    <a href="{% url 'editar_preco_final' orcamento.id %}" class="btn btn-success">
+                                        <i class="bi bi-currency-dollar"></i> 
+                                        {% if orcamento.preco_final %}
+                                            Definir Preço Final
+                                        {% else %}
+                                            Definir Preço Final
+                                        {% endif %}
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <h6>Gerenciar Orçamento</h6>
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'excluir_orcamento' orcamento.id %}" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Excluir Orçamento
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-4">
+        <div class="container">
+            <small>© 2025 Sabina Decorações. Todos os direitos reservados.</small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
