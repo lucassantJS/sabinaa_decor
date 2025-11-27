@@ -2,46 +2,43 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Confirmação de Agendamento</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px; }
+        .header { background: #8B5E34; color: white; padding: 20px; text-align: center; }
+        .content { background: white; padding: 20px; }
+        .footer { background: #F8EBE6; padding: 15px; text-align: center; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 8px; border-bottom: 1px solid #ddd; }
+        .bold { font-weight: bold; }
+    </style>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background-color: #f9f9f9;">
-    <div style="max-width: 600px; margin: 0 auto; background: white; padding: 0; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-        <div style="background: linear-gradient(135deg, #8B5E34 0%, #C29B7A 100%); color: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="margin: 0; font-size: 24px;">✅ Agendamento Confirmado</h1>
-            <p style="margin: 10px 0 0 0;">Sabina Decorações</p>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Agendamento Confirmado</h1>
+            <p>Sabina Decorações</p>
         </div>
         
-        <div style="padding: 30px;">
+        <div class="content">
             <p>Olá <strong>{{ nome }}</strong>,</p>
-            <p>Seu agendamento foi confirmado com sucesso! Estamos ansiosos para atendê-lo.</p>
+            <p>Seu agendamento foi confirmado com sucesso!</p>
             
-            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                <tr>
-                    <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; width: 30%;">Data:</td>
-                    <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ data }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold;">Hora:</td>
-                    <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ hora }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold;">Telefone:</td>
-                    <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ telefone }}</td>
-                </tr>
-                {% if mensagem and mensagem != "Não informada" %}
-                <tr>
-                    <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold;">Sua mensagem:</td>
-                    <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ mensagem }}</td>
-                </tr>
+            <table>
+                <tr><td class="bold">Data:</td><td>{{ data }}</td></tr>
+                <tr><td class="bold">Hora:</td><td>{{ hora }}</td></tr>
+                <tr><td class="bold">Telefone:</td><td>{{ telefone }}</td></tr>
+                {% if mensagem and mensagem != 'Não informada' %}
+                <tr><td class="bold">Mensagem:</td><td>{{ mensagem }}</td></tr>
                 {% endif %}
             </table>
             
             <p><strong>Importante:</strong> Chegue com 15 minutos de antecedência.</p>
         </div>
         
-        <div style="background-color: #F8EBE6; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; margin-top: 20px;">
-            <p style="margin: 0;"><strong>Sabina Decorações</strong></p>
-            <p style="margin: 5px 0;">Transformando seus eventos em momentos inesquecíveis</p>
+        <div class="footer">
+            <p><strong>Sabina Decorações</strong></p>
+            <p>Transformando seus eventos em momentos inesquecíveis</p>
         </div>
     </div>
 </body>

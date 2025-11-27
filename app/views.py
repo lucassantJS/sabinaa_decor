@@ -45,40 +45,28 @@ def testar_conexao_email():
         return False, f"Falha na conexão: {str(e)}"
 
 def enviar_email_agendamento_servico(agendamento, tipo):
-    """Envia e-mail de agendamento - VERSÃO CORRIGIDA DEFINITIVA"""
-    global _last_email_time, _email_count
-    
-    # Rate limiting
-    current_time = time.time()
-    if current_time - _last_email_time < 1:
-        return False, "Rate limit atingido"
-    
-    _last_email_time = current_time
-    _email_count += 1
+    """Envia e-mail de agendamento - VERSÃO DEFINITIVA FUNCIONAL"""
     
     try:
         if tipo == 'aceito':
-            subject = '✅ Confirmação de Agendamento - Sabina Decorações'
-            template_html = 'app/email_confirmacao_aceito.html'
+            subject = 'Confirmação de Agendamento - Sabina Decorações'
         elif tipo == 'recusado':
-            subject = '❌ Agendamento Recusado - Sabina Decorações'
-            template_html = 'app/email_confirmacao_recusado.html'
+            subject = 'Agendamento Recusado - Sabina Decorações'
         else:
             return False, "Tipo inválido"
         
-        # Contexto para os templates
-        context = {
-            'nome': agendamento.nome,
-            'data': agendamento.data.strftime('%d/%m/%Y'),
-            'hora': agendamento.hora.strftime('%H:%M'),
-            'telefone': agendamento.telefone,
-            'mensagem': agendamento.mensagem or 'Não informada'
-        }
+        # ✅ FORMATAÇÃO CORRETA DA DATA E HORA
+        if hasattr(agendamento.data, 'strftime'):
+            data_formatada = agendamento.data.strftime('%d/%m/%Y')
+        else:
+            data_formatada = str(agendamento.data)
+            
+        if hasattr(agendamento.hora, 'strftime'):
+            hora_formatada = agendamento.hora.strftime('%H:%M')
+        else:
+            hora_formatada = str(agendamento.hora).replace(':00', '')  # Remove segundos
         
-        # ✅ CORREÇÃO: Renderizar HTML separadamente
-        html_message = render_to_string(template_html, context)
-        
-        # ✅ CORREÇÃO: Criar mensagem de texto simples MANUALMENTE
+        # MENSAGEM DE TEXTO SIMPLES
         if tipo == 'aceito':
             plain_message = f"""
 CONFIRMAÇÃO DE AGENDAMENTO - Sabina Decorações
@@ -87,11 +75,11 @@ Olá {agendamento.nome},
 
 Seu agendamento foi confirmado com sucesso!
 
-📅 Data: {agendamento.data.strftime('%d/%m/%Y')}
-⏰ Hora: {agendamento.hora.strftime('%H:%M')}
-📞 Telefone: {agendamento.telefone}
+DATA: {data_formatada}
+HORA: {hora_formatada}
+TELEFONE: {agendamento.telefone}
 
-{('💬 Sua mensagem: ' + agendamento.mensagem) if agendamento.mensagem else ''}
+{('MENSAGEM: ' + agendamento.mensagem) if agendamento.mensagem else ''}
 
 Estamos ansiosos para atendê-lo!
 
@@ -106,36 +94,37 @@ Olá {agendamento.nome},
 
 Infelizmente não podemos atender seu agendamento para a data solicitada.
 
-📅 Data solicitada: {agendamento.data.strftime('%d/%m/%Y')}
-⏰ Horário solicitado: {agendamento.hora.strftime('%H:%M')}
+DATA SOLICITADA: {data_formatada}
+HORÁRIO SOLICITADO: {hora_formatada}
 
 Entre em contato conosco para encontrar uma data alternativa.
 
-📞 Telefone: (44) 99999-9999
-📧 E-mail: lucashenri0231@gmail.com
+TELEFONE: (43) 33275-7983
+E-MAIL: lucashenri0231@gmail.com
 
 Atenciosamente,
 Sabina Decorações
 """
         
-        # ✅ CORREÇÃO: Usar EmailMultiAlternatives para controle total
-        from django.core.mail import EmailMultiAlternatives
+        # ENVIO SIMPLES
+        from django.core.mail import send_mail
+        from django.conf import settings
         
-        email = EmailMultiAlternatives(
+        send_mail(
             subject=subject,
-            body=plain_message.strip(),  # Texto simples
+            message=plain_message.strip(),
             from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[agendamento.email],
+            recipient_list=[agendamento.email],
+            fail_silently=False
         )
-        email.attach_alternative(html_message, "text/html")  # HTML
-        email.send(fail_silently=False)
         
-        logger.warning(f"E-mail {tipo} enviado para {agendamento.email}")
-        return True, "Sucesso"
+        print(f"✅ E-mail {tipo} enviado para {agendamento.email}")
+        return True, "E-mail enviado com sucesso"
         
     except Exception as e:
-        logger.warning(f"Erro e-mail: {str(e)}")
-        return False, f"Erro: {str(e)}"
+        error_msg = f"Erro ao enviar e-mail: {str(e)}"
+        print(f"❌ {error_msg}")
+        return False, error_msg
     
 def testar_template_email(request):
     """Teste visual dos templates de e-mail"""
