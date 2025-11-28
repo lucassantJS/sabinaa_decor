@@ -44,81 +44,61 @@ def testar_conexao_email():
     except Exception as e:
         return False, f"Falha na conexão: {str(e)}"
 
+import resend
+from django.conf import settings
+
 def enviar_email_agendamento_servico(agendamento, tipo):
-    """Envia e-mail de agendamento - VERSÃO DEFINITIVA FUNCIONAL"""
+    """Envia e-mail de agendamento - VERSÃO GMAIL DEFINITIVA"""
     
     try:
         if tipo == 'aceito':
             subject = 'Confirmação de Agendamento - Sabina Decorações'
-        elif tipo == 'recusado':
-            subject = 'Agendamento Recusado - Sabina Decorações'
-        else:
-            return False, "Tipo inválido"
-        
-        # ✅ FORMATAÇÃO CORRETA DA DATA E HORA
-        if hasattr(agendamento.data, 'strftime'):
-            data_formatada = agendamento.data.strftime('%d/%m/%Y')
-        else:
-            data_formatada = str(agendamento.data)
-            
-        if hasattr(agendamento.hora, 'strftime'):
-            hora_formatada = agendamento.hora.strftime('%H:%M')
-        else:
-            hora_formatada = str(agendamento.hora).replace(':00', '')  # Remove segundos
-        
-        # MENSAGEM DE TEXTO SIMPLES
-        if tipo == 'aceito':
-            plain_message = f"""
-CONFIRMAÇÃO DE AGENDAMENTO - Sabina Decorações
+            text_message = f"""CONFIRMAÇÃO DE AGENDAMENTO - Sabina Decorações
 
 Olá {agendamento.nome},
 
 Seu agendamento foi confirmado com sucesso!
 
-DATA: {data_formatada}
-HORA: {hora_formatada}
-TELEFONE: {agendamento.telefone}
+📅 Data: {agendamento.data.strftime('%d/%m/%Y')}
+⏰ Hora: {agendamento.hora.strftime('%H:%M')}
+📞 Telefone: {agendamento.telefone}
 
-{('MENSAGEM: ' + agendamento.mensagem) if agendamento.mensagem else ''}
+{('💬 Sua mensagem: ' + agendamento.mensagem) if agendamento.mensagem else ''}
 
 Estamos ansiosos para atendê-lo!
 
 Atenciosamente,
-Sabina Decorações
-"""
+Sabina Decorações"""
         else:
-            plain_message = f"""
-AGENDAMENTO RECUSADO - Sabina Decorações
+            subject = 'Agendamento Recusado - Sabina Decorações'
+            text_message = f"""AGENDAMENTO RECUSADO - Sabina Decorações
 
 Olá {agendamento.nome},
 
 Infelizmente não podemos atender seu agendamento para a data solicitada.
 
-DATA SOLICITADA: {data_formatada}
-HORÁRIO SOLICITADO: {hora_formatada}
+📅 Data solicitada: {agendamento.data.strftime('%d/%m/%Y')}
+⏰ Horário solicitado: {agendamento.hora.strftime('%H:%M')}
 
 Entre em contato conosco para encontrar uma data alternativa.
 
-TELEFONE: (43) 33275-7983
-E-MAIL: lucashenri0231@gmail.com
+📞 Telefone: (43) 33275-7983
+📧 E-mail: lucashenri0231@gmail.com
 
 Atenciosamente,
-Sabina Decorações
-"""
+Sabina Decorações"""
         
-        # ENVIO SIMPLES
         from django.core.mail import send_mail
-        from django.conf import settings
         
         send_mail(
             subject=subject,
-            message=plain_message.strip(),
+            message=text_message.strip(),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[agendamento.email],
             fail_silently=False
         )
         
-        print(f"✅ E-mail {tipo} enviado para {agendamento.email}")
+        print(f"✅ E-mail {tipo} enviado via Gmail para {agendamento.email}")
         return True, "E-mail enviado com sucesso"
         
     except Exception as e:
