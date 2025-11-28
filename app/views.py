@@ -44,8 +44,10 @@ def testar_conexao_email():
     except Exception as e:
         return False, f"Falha na conexão: {str(e)}"
 
-import resend
 from django.conf import settings
+from django.core.mail import send_mail
+
+# ❌ REMOVIDO: import resend (Isso causava o erro no servidor)
 
 def enviar_email_agendamento_servico(agendamento, tipo):
     """Envia e-mail de agendamento - VERSÃO GMAIL DEFINITIVA"""
@@ -88,8 +90,7 @@ Entre em contato conosco para encontrar uma data alternativa.
 Atenciosamente,
 Sabina Decorações"""
         
-        from django.core.mail import send_mail
-        
+        # Envio utilizando as configurações do Gmail no settings.py
         send_mail(
             subject=subject,
             message=text_message.strip(),
