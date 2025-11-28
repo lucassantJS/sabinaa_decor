@@ -141,16 +141,17 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/inicio/'
 LOGOUT_REDIRECT_URL = '/inicio/'
 
-# --- EMAIL (CONFIGURAÇÃO GMAIL COM SENHA DE APP) ---
-# --- EMAIL (CONFIGURAÇÃO GMAIL - MODO SSL) ---
+# --- EMAIL (CONFIGURAÇÃO GMAIL - MODO SSL BLINDADO) ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=465, cast=int)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='lucashenri0231@gmail.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='psprtrgkyzwguncj')
 
-# Configuração crítica para funcionar na Railway (SSL na porta 465)
+# Aqui estava o erro: adicionei um default para garantir que não quebre
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Sabina Decorações <lucashenri0231@gmail.com>')
+
+# Configuração para SSL (Porta 465)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool)
 
