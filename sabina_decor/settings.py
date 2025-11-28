@@ -144,16 +144,14 @@ LOGOUT_REDIRECT_URL = '/inicio/'
 # --- EMAIL (CONFIGURAÇÃO GMAIL - MODO SSL BLINDADO) ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=465, cast=int)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='lucashenri0231@gmail.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='psprtrgkyzwguncj')
-
-# Aqui estava o erro: adicionei um default para garantir que não quebre
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Sabina Decorações <lucashenri0231@gmail.com>')
 
-# Configuração para SSL (Porta 465)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool)
+# Configuração Flexível
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
 
 # COMENTE ESTAS LINHAS ABAIXO PARA O E-MAIL SAIR DE VERDADE:
 # if DEBUG:
