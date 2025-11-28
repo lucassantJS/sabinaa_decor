@@ -59,7 +59,7 @@ Seu agendamento foi confirmado com sucesso!
 📅 Data: {agendamento.data.strftime('%d/%m/%Y')}
 ⏰ Hora: {agendamento.hora.strftime('%H:%M')}
 📍 Endereço: Rua Amélia Donega Spoladore, 120 - Londrina/PR
-📞 Telefone: {agendamento.telefone}
+📞 Favor Se atrasar aviase 🔔
 
 {('💬 Sua mensagem: ' + agendamento.mensagem) if agendamento.mensagem else ''}
 
@@ -80,7 +80,7 @@ Infelizmente não podemos atender seu agendamento para a data solicitada.
 
 Entre em contato conosco para encontrar uma data alternativa.
 
-📞 Telefone: (43) 33275-7983
+📞 Telefone: (43) 98459 1542
 📧 E-mail: lucashenri0231@gmail.com
 
 Atenciosamente,
