@@ -61,12 +61,12 @@ def enviar_email_agendamento_servico(agendamento, tipo):
         if tipo == 'aceito':
             subject = 'Confirmação de Agendamento - Sabina Decorações'
             # Renderizar template HTML
-            html_message = render_to_string('app/email_agendamento_aceito.html', contexto)
+            html_message = render_to_string('app/email_confirmacao_aceito.html', contexto)
             plain_message = strip_tags(html_message)
         else:
             subject = 'Agendamento Recusado - Sabina Decorações'
             # Renderizar template HTML
-            html_message = render_to_string('app/email_agendamento_recusado.html', contexto)
+            html_message = render_to_string('app/email_confirmacao_recusado.html', contexto)
             plain_message = strip_tags(html_message)
         
         # Envio utilizando template HTML
