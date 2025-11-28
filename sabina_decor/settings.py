@@ -142,14 +142,17 @@ LOGIN_REDIRECT_URL = '/inicio/'
 LOGOUT_REDIRECT_URL = '/inicio/'
 
 # --- EMAIL (CONFIGURAÇÃO GMAIL COM SENHA DE APP) ---
+# --- EMAIL (CONFIGURAÇÃO GMAIL - MODO SSL) ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'lucashenri0231@gmail.com'
-EMAIL_HOST_PASSWORD = 'psprtrgkyzwguncj'
-DEFAULT_FROM_EMAIL = 'Sabina Decorações <lucashenri0231@gmail.com>'
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=465, cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+
+# Configuração crítica para funcionar na Railway (SSL na porta 465)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool)
 
 # COMENTE ESTAS LINHAS ABAIXO PARA O E-MAIL SAIR DE VERDADE:
 # if DEBUG:
