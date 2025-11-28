@@ -1,0 +1,263 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Início | Sabina Decorações</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --cor-primaria: #C29B7A;
+            --cor-secundaria: #F8EBE6;
+            --cor-acento: #8B5E34;
+            --cor-fundo: #FDF7F2;
+            --cor-texto: #4E342E;
+        }
+
+        body {
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            font-family: "Segoe UI", Tahoma, sans-serif;
+        }
+
+        .navbar-light {
+            background-color: var(--cor-secundaria) !important;
+            border-bottom: 2px solid var(--cor-primaria);
+        }
+
+        .navbar-light .navbar-brand,
+        .navbar-light .nav-link {
+            color: var(--cor-texto) !important;
+        }
+
+        .navbar-light .navbar-brand:hover,
+        .navbar-light .nav-link:hover {
+            color: var(--cor-primaria) !important;
+        }
+
+        .navbar-toggler-icon {
+            filter: invert(32%) sepia(16%) saturate(1264%) hue-rotate(10deg) brightness(95%) contrast(92%);
+        }
+
+        .btn-outline-primary {
+            color: var(--cor-primaria) !important;
+            border-color: var(--cor-primaria) !important;
+            background-color: transparent !important;
+        }
+
+        .btn-outline-primary:hover {
+            color: #fff !important;
+            background-color: var(--cor-primaria) !important;
+            border-color: var(--cor-primaria) !important;
+        }
+
+        .btn-primary {
+            background-color: var(--cor-primaria) !important;
+            border-color: var(--cor-primaria) !important;
+            color: #fff !important;
+        }
+
+        .btn-primary:hover {
+            background-color: #AA7D5F !important;
+            border-color: #AA7D5F !important;
+        }
+
+        .btn-admin {
+            background-color: var(--cor-acento) !important;
+            border-color: var(--cor-acento) !important;
+            color: #fff !important;
+        }
+
+        .btn-admin:hover {
+            background-color: #6D4C41 !important;
+            border-color: #6D4C41 !important;
+        }
+
+        h1, h2, h3, h4, h5 {
+            color: var(--cor-acento);
+            font-weight: 600;
+        }
+
+        .hero-section {
+            background-color: var(--cor-secundaria);
+            padding: 4rem 0;
+            margin-bottom: 3rem;
+        }
+
+        .feature-box {
+            padding: 2rem;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--cor-primaria);
+            margin-bottom: 1rem;
+        }
+
+        footer {
+            background-color: var(--cor-secundaria);
+            border-top: 2px solid var(--cor-primaria);
+        }
+
+        .lead {
+            color: var(--cor-texto);
+            opacity: 0.9;
+        }
+
+        .user-info {
+            background-color: var(--cor-secundaria);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            margin-left: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        /* Botão de Login Administrativo ajustado para a paleta */
+        .btn-login-admin {
+            background-color: var(--cor-primaria) !important;
+            border-color: var(--cor-primaria) !important;
+            color: #fff !important;
+        }
+
+        .btn-login-admin:hover {
+            background-color: var(--cor-acento) !important;
+            border-color: var(--cor-acento) !important;
+            color: #fff !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Barra de informações do usuário -->
+    <div class="bg-light py-2 border-bottom">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="text-muted small">Sabina Decorações - Transformando seus eventos em momentos inesquecíveis</div>
+            <div class="d-flex align-items-center">
+                {% if user.is_authenticated %}
+                    <span class="user-info">
+                        <i class="bi bi-person-check"></i> 
+                        Olá, {{ user.username }} 
+                        {% if user.is_staff %}(Administrador){% endif %}
+                    </span>
+                    <a href="{% url 'custom_logout' %}" class="btn btn-outline-danger btn-sm ms-2">
+                        <i class="bi bi-box-arrow-right"></i> Sair
+                    </a>
+                {% else %}
+                    <!-- Botão de Login Administrativo - APENAS NA PÁGINA INICIAL -->
+                    {% if request.resolver_match.url_name == 'inicio' %}
+                    <a href="{% url 'login' %}" class="btn btn-login-admin btn-sm">
+                        <i class="bi bi-person-gear"></i> Login Administrativo
+                    </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+                <img src="{% static 'logo_oficial.png' %}" alt="Sabina Decorações" 
+                    style="height: 80px;" class="me-2">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link active" href="{% url 'inicio' %}">Início</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'simulador_orcamento' %}">Orçamento</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'cria_agendamento' %}">Agendamento</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'galeria_fotos' %}">Galeria</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'sobre' %}">Sobre</a></li>
+                    
+                    <!-- Links administrativos (visíveis apenas para administradores) -->
+                    {% if user.is_authenticated and user.is_staff %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-gear"></i> Administrativo
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'lista_agendamentos' %}">
+                                <i class="bi bi-calendar-check"></i> Gerenciar Agendamentos
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'lista_orcamentos' %}">
+                                <i class="bi bi-cash-coin"></i> Gerenciar Orçamentos
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'gerenciar_galeria' %}">
+                                <i class="bi bi-images"></i> Gerenciar Galeria
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/admin/">
+                                <i class="bi bi-speedometer2"></i> Painel Admin Django
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-5 fw-bold mb-4">Decoração Personalizada ao Seu Estilo</h1>
+            <p class="lead mb-5">Simule orçamentos, escolha pacotes e agende com praticidade e elegância.</p>
+            <a href={% url 'galeria_fotos' %} class="btn btn-primary btn-lg px-4">Confira o Nosso Trabalho!</a>
+        </div>
+    </section>
+
+    <section class="py-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-box text-center p-4 h-100">
+                        <div class="feature-icon">
+                            <i class="bi bi-calculator"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Simulação Rápida</h5>
+                        <p>Veja o valor da sua decoração em tempo real com nosso simulador intuitivo.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-box text-center p-4 h-100">
+                        <div class="feature-icon">
+                            <i class="bi bi-gift"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Pacotes Personalizáveis</h5>
+                        <p>Escolha detalhes que combinam perfeitamente com o estilo do seu evento.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-box text-center p-4 h-100">
+                        <div class="feature-icon">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Agendamento Online</h5>
+                        <p>Reserve sua data com apenas alguns cliques, de forma rápida e segura.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="text-center py-4">
+        <div class="container">
+            <small>© 2025 Sabina Decorações. Todos os direitos reservados.</small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

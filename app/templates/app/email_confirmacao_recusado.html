@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Agendamento Recusado</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background-color: #f9f9f9;">
+    <div style="max-width: 600px; margin: 0 auto; background: white; padding: 0; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <div style="background: linear-gradient(135deg, #dc3545 0%, #e35d6a 100%); color: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="margin: 0; font-size: 24px;">❌ Agendamento Recusado</h1>
+            <p style="margin: 10px 0 0 0;">Sabina Decorações</p>
+        </div>
+        
+        <div style="padding: 30px;">
+            <p>Olá <strong>{{ nome }}</strong>,</p>
+            <p>Infelizmente não podemos atender seu agendamento para a data solicitada.</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; width: 40%;">Data solicitada:</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ data }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold;">Horário solicitado:</td>
+                    <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ hora }}</td>
+                </tr>
+            </table>
+            
+            <p><strong>Sugestão:</strong> Entre em contato conosco para encontrar uma data alternativa.</p>
+            <p>📞 Telefone: (43) 98459-1542</p>
+            <p>📧 E-mail: lucashenri0231@gmail.com</p>
+        </div>
+        
+        <div style="background-color: #f8d7da; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; margin-top: 20px; color: #721c24;">
+            <p style="margin: 0;"><strong>Sabina Decorações</strong></p>
+            <p style="margin: 5px 0;">Agradecemos seu interesse e esperamos poder atendê-lo em outra oportunidade</p>
+        </div>
+    </div>
+</body>
+</html>
