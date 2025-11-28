@@ -45,51 +45,35 @@ def testar_conexao_email():
         return False, f"Falha na conexão: {str(e)}"
 
 def enviar_email_agendamento_servico(agendamento, tipo):
-    """Envia e-mail de agendamento - VERSÃO GMAIL DEFINITIVA"""
+    """Envia e-mail de agendamento COM TEMPLATE HTML"""
     
     try:
+        # Preparar contexto para o template
+        contexto = {
+            'nome': agendamento.nome,
+            'data': agendamento.data.strftime('%d/%m/%Y'),
+            'hora': agendamento.hora.strftime('%H:%M'),
+            'telefone': agendamento.telefone,
+            'mensagem': agendamento.mensagem if agendamento.mensagem else '',
+            'tipo': tipo
+        }
+
         if tipo == 'aceito':
             subject = 'Confirmação de Agendamento - Sabina Decorações'
-            text_message = f"""CONFIRMAÇÃO DE AGENDAMENTO - Sabina Decorações
-
-Olá {agendamento.nome},
-
-Seu agendamento foi confirmado com sucesso!
-
-📅 Data: {agendamento.data.strftime('%d/%m/%Y')}
-⏰ Hora: {agendamento.hora.strftime('%H:%M')}
-📍 Endereço: Rua Amélia Donega Spoladore, 120 - Londrina/PR
-📞 Favor Se atrasar aviase 🔔
-
-{('💬 Sua mensagem: ' + agendamento.mensagem) if agendamento.mensagem else ''}
-
-Estamos ansiosos para atendê-lo!
-
-Atenciosamente,
-Sabina Decorações"""
+            # Renderizar template HTML
+            html_message = render_to_string('app/email_agendamento_aceito.html', contexto)
+            plain_message = strip_tags(html_message)
         else:
             subject = 'Agendamento Recusado - Sabina Decorações'
-            text_message = f"""AGENDAMENTO RECUSADO - Sabina Decorações
-
-Olá {agendamento.nome},
-
-Infelizmente não podemos atender seu agendamento para a data solicitada.
-
-📅 Data solicitada: {agendamento.data.strftime('%d/%m/%Y')}
-⏰ Horário solicitado: {agendamento.hora.strftime('%H:%M')}
-
-Entre em contato conosco para encontrar uma data alternativa.
-
-📞 Telefone: (43) 98459 1542
-📧 E-mail: lucashenri0231@gmail.com
-
-Atenciosamente,
-Sabina Decorações"""
+            # Renderizar template HTML
+            html_message = render_to_string('app/email_agendamento_recusado.html', contexto)
+            plain_message = strip_tags(html_message)
         
-        # Envio utilizando as configurações do Gmail
+        # Envio utilizando template HTML
         send_mail(
             subject=subject,
-            message=text_message.strip(),
+            message=plain_message,
+            html_message=html_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[agendamento.email],
             fail_silently=False
