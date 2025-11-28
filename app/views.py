@@ -22,14 +22,14 @@ import logging
 from .models import Agendamento, Orcamento, FotoGaleria, CategoriaFoto, CONSTANTES_PACOTES, CONSTANTES_SERVICOS
 from .forms import AgendamentoForm, FotoGaleriaForm
 
-# Configuração de logging - REDUZIDA para evitar rate limit
+# Configuração de logging
 logger = logging.getLogger(__name__)
 
 # Controle de rate limiting para e-mails
 _last_email_time = 0
 _email_count = 0
 
-# --- Funções de Email Corrigidas ---
+# --- Funções de Email ---
 def testar_conexao_email():
     """Testa a conexão com o servidor de e-mail"""
     try:
@@ -43,11 +43,6 @@ def testar_conexao_email():
         return True, "Conexão bem-sucedida"
     except Exception as e:
         return False, f"Falha na conexão: {str(e)}"
-
-from django.conf import settings
-from django.core.mail import send_mail
-
-# ❌ REMOVIDO: import resend (Isso causava o erro no servidor)
 
 def enviar_email_agendamento_servico(agendamento, tipo):
     """Envia e-mail de agendamento - VERSÃO GMAIL DEFINITIVA"""
@@ -63,6 +58,7 @@ Seu agendamento foi confirmado com sucesso!
 
 📅 Data: {agendamento.data.strftime('%d/%m/%Y')}
 ⏰ Hora: {agendamento.hora.strftime('%H:%M')}
+📍 Endereço: Rua Amélia Donega Spoladore, 120 - Londrina/PR
 📞 Telefone: {agendamento.telefone}
 
 {('💬 Sua mensagem: ' + agendamento.mensagem) if agendamento.mensagem else ''}
@@ -90,7 +86,7 @@ Entre em contato conosco para encontrar uma data alternativa.
 Atenciosamente,
 Sabina Decorações"""
         
-        # Envio utilizando as configurações do Gmail no settings.py
+        # Envio utilizando as configurações do Gmail
         send_mail(
             subject=subject,
             message=text_message.strip(),
@@ -106,27 +102,6 @@ Sabina Decorações"""
         error_msg = f"Erro ao enviar e-mail: {str(e)}"
         print(f"❌ {error_msg}")
         return False, error_msg
-    
-def testar_template_email(request):
-    """Teste visual dos templates de e-mail"""
-    from django.template.loader import render_to_string
-    
-    context = {
-        'nome': 'João Silva',
-        'data': '15/12/2024',
-        'hora': '14:30',
-        'telefone': '(44) 99999-9999',
-        'mensagem': 'Gostaria de discutir decoração para festa de aniversário.'
-    }
-    
-    template_type = request.GET.get('tipo', 'aceito')
-    
-    if template_type == 'aceito':
-        html = render_to_string('app/email_confirmacao_aceito.html', context)
-    else:
-        html = render_to_string('app/email_confirmacao_recusado.html', context)
-    
-    return HttpResponse(html)    
 
 def enviar_email_agendamento_background(agendamento_id, tipo):
     """Função background com proteção contra loops"""
@@ -134,7 +109,6 @@ def enviar_email_agendamento_background(agendamento_id, tipo):
         agendamento = Agendamento.objects.get(id=agendamento_id)
         success, message = enviar_email_agendamento_servico(agendamento, tipo)
         
-        # REMOVA logs de sucesso - apenas erros com warning
         if not success and "Rate limit" not in message:
             logger.warning(f"Falha e-mail: {message}")
             
@@ -155,12 +129,16 @@ def converter_preco_input(valor_str):
         return 0.0
 
 def task_enviar_email_orcamento(orcamento_id, preco_final_float):
+    """Envia e-mail com orçamento final"""
     try:
         orcamento = Orcamento.objects.get(id=orcamento_id)
         preco_final_formatado_br = f"{preco_final_float:.2f}".replace('.', ',')
 
         pacote_data = CONSTANTES_PACOTES.get(orcamento.pacote_selecionado, {})
-        pacote_obj = {'nome': pacote_data.get('nome', orcamento.pacote_selecionado), 'descricao': pacote_data.get('descricao', '')}
+        pacote_obj = {
+            'nome': pacote_data.get('nome', orcamento.pacote_selecionado), 
+            'descricao': pacote_data.get('descricao', '')
+        }
         
         servicos_lista = []
         servicos_detalhados = orcamento.get_servicos_detalhados()
@@ -202,13 +180,12 @@ def task_enviar_email_orcamento(orcamento_id, preco_final_float):
                 fail_silently=False,
             )
             
-        # LOG SIMPLIFICADO
         logger.warning(f"E-mail orçamento #{orcamento.id} enviado")
 
     except Exception as e:
         logger.warning(f"Erro e-mail orçamento: {str(e)}")
 
-# --- Views de Diagnóstico (Mantidas mas com logs reduzidos) ---
+# --- Views de Diagnóstico ---
 def diagnostico_email(request):
     """View para diagnóstico completo do problema de e-mail"""
     diagnostics = []
@@ -240,21 +217,6 @@ def diagnostico_email(request):
     diagnostics.append(f"🔒 EMAIL_HOST_PASSWORD definido: {'Sim' if hasattr(settings, 'EMAIL_HOST_PASSWORD') and settings.EMAIL_HOST_PASSWORD else 'Não'}")
     
     return HttpResponse("<br>".join(diagnostics))
-
-def testar_sendgrid_direto(request):
-    """Teste DIRETO do SendGrid - sem templates, sem HTML"""
-    try:
-        # Teste MUITO simples - apenas texto
-        send_mail(
-            subject='🚀 TESTE DIRETO SENDGRID - Sabina Decorações',
-            message='Se você está lendo isso, o SendGrid está funcionando PERFEITAMENTE!',
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=['lucassant@edu.unifil.br'],
-            fail_silently=False,
-        )
-        return HttpResponse("✅ E-mail de teste DIRETO enviado! Verifique SUA CAIXA DE ENTRADA.")
-    except Exception as e:
-        return HttpResponse(f"❌ Falha no teste direto: {str(e)}")
 
 def testar_email(request):
     """View temporária para testar configuração de e-mail"""
@@ -308,7 +270,6 @@ def galeria_fotos(request):
         return render(request, 'app/galeria_fotos.html', context)
         
     except Exception as e:
-        # LOG SIMPLIFICADO
         logger.warning(f"Erro galeria: {e}")
         fotos_fallback = [
             {
@@ -356,7 +317,10 @@ def simulador_orcamento(request):
         if not all(required_fields):
             messages.error(request, "Por favor, preencha todos os campos obrigatórios.")
             return render(request, 'app/simulador_orcamento.html', {
-                'tipos_evento': tipos_evento, 'pacotes': pacotes, 'servicos_adicionais': servicos_adicionais, 'dados_formulario': dados
+                'tipos_evento': tipos_evento, 
+                'pacotes': pacotes, 
+                'servicos_adicionais': servicos_adicionais, 
+                'dados_formulario': dados
             })
         
         try:
